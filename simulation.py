@@ -7,6 +7,8 @@ import json
 import gc
 import pathlib
 import helper_functions as hf
+import simulation_setup_functions as ssf
+
 
 # Tudatpy imports
 from tudatpy.io import save2txt
@@ -81,7 +83,7 @@ def run_simulation(
     integrator_stepsize=600,
     integrator_coeff_set=propagation_setup.integrator.CoefficientSets.rkf_45,
 ):
-    
+
     empty_body_settings = get_empty_body_settings()
     
     body_settings = environment_setup.get_default_body_settings(
@@ -93,43 +95,24 @@ def run_simulation(
     bodies = environment_setup.create_system_of_bodies(body_settings)
     
     bodies.create_empty_body("SUPER_SAT_37k")
-    
+
+    ######################################################################################
+
+    # TERMINATION CONDITIONS
+
+    ######################################################################################
+
+    if decision_variable_dic:
+        pass    # Set time termination = decision_variable_dic['t_impulse']
+
     time_termination_settings = propagation_setup.propagator.time_termination(
         simulation_start_epoch + maximum_duration,
         terminate_exactly_on_final_condition=False
     )
-    
-    ######################################################################################
-    
-    # TERMINATION CONDITIONS
-    
-    ######################################################################################
-    upper_lat_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.latitude("SUPER_SAT_37k", "Earth"),
-        limit_value=termination_latitude,
-        use_as_lower_limit=False,
-        terminate_exactly_on_final_condition=False
-    )
-    lower_lat_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.latitude("SUPER_SAT_37k", "Earth"),
-        limit_value=-termination_latitude,
-        use_as_lower_limit=True,
-        terminate_exactly_on_final_condition=False
-    )
-    upper_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
-        limit_value=termination_longitude,
-        use_as_lower_limit=False,
-        terminate_exactly_on_final_condition=False
-    )
-    lower_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
-        limit_value=-termination_longitude,
-        use_as_lower_limit=True,
-        terminate_exactly_on_final_condition=False
-    )
 
-    hybrid_termination_conditions_list = [time_termination_settings, upper_lat_termination_settings, lower_lat_termination_settings, upper_long_termination_settings, lower_long_termination_settings]
+    general_termination_settings = ssf.get_general_termination_settings(termination_latitude, termination_longitude)
+
+    hybrid_termination_conditions_list = [time_termination_settings] + general_termination_settings
 
     # Create termination settings object (when either the time of altitude condition is reached: propaation terminates)
     hybrid_termination_settings = propagation_setup.propagator.hybrid_termination(
@@ -197,20 +180,20 @@ def run_simulation(
     dynamics_simulator = numerical_simulation.create_dynamics_simulator(
         bodies, propagator_settings)
     
-    
+    print(dynamics_simulator.propagation_termination_details.termination_reason)
+
     hf.save_dynamics_simulator_to_files(path_to_save_data, dynamics_simulator)
     hf.save_dependent_variable_info(dynamics_simulator.propagation_results.dependent_variable_ids, path_to_save_data + "/dependent_variable_ids.dat")
-    
-    
-    
-    pass
+
+
 
 if __name__ == "__main__":
     
     decision_variable_dic = {}
     
     decision_variable_dic["dv_mag"] = -.1        
-    decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])    
+    decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
+    decision_variable_dic['t_impulse'] = 1200 * 20
     
     run_simulation("test2", 2 * 31 * 24 * 60**2, integrator_stepsize=600, decision_variable_dic=decision_variable_dic)
 
