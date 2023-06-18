@@ -48,9 +48,24 @@ def get_general_termination_settings(termination_latitude, termination_longitude
             lower_long_termination_settings]
 
 
-def get_integrator_settings(integrator_stepsize, integrator_coeff_set):
-    return propagation_setup.integrator.runge_kutta_fixed_step_size(
-            integrator_stepsize,
-            integrator_coeff_set)
+def get_integrator_settings(integrator_settings_dic):
+    
+    if integrator_settings_dic["type"] == "multistage.fixed":
+        integrator_settings = propagation_setup.integrator.runge_kutta_fixed_step_size(
+            integrator_settings_dic["step_size"],
+            integrator_settings_dic["integrator_coeff_set"])
+    
+    
+        
+    return integrator_settings
 
 
+
+if __name__ == "__main__":
+    default_integrator_settings_dic = {
+        "type": "multistage.fixed",
+        "step_size": 1200,
+        "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45
+    }
+    
+    print(get_integrator_settings(default_integrator_settings_dic))

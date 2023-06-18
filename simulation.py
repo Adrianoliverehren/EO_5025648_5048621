@@ -30,6 +30,11 @@ default_init_mee = np.zeros(6)
 default_init_mee[0] = 42164177
 default_init_mee[-1] = np.deg2rad(-80+0.147)
 
+default_integrator_settings_dic = {
+    "type": "multistage.fixed",
+    "step_size": 1200,
+    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45
+}
 
 default_dep_vars = [
         propagation_setup.dependent_variable.altitude("SUPER_SAT_37k", "Earth"),
