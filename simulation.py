@@ -60,6 +60,7 @@ default_dep_vars = [
 ]
 default_decision_variable_dic = {'dv_mag': 0, 'dv_unit_vect': np.array([1, 0, 0]), 't_impulse': 0}
 
+
 def get_empty_body_settings(
     global_frame_origin = 'Earth',
     global_frame_orientation = 'J2000'
@@ -87,8 +88,8 @@ def run_simulation(
     simulation_start_epoch=0,
     termination_latitude=np.deg2rad(0.32),
     termination_longitude=np.deg2rad(0.32),
-    integrator_stepsize=600,
-    integrator_coeff_set=propagation_setup.integrator.CoefficientSets.rkf_45,
+    integrator_settings_dic=default_integrator_settings_dic,
+    max_cpu_time=30
 ):
 
     empty_body_settings = get_empty_body_settings()
@@ -120,7 +121,8 @@ def run_simulation(
             terminate_exactly_on_final_condition=True
         )
 
-    general_termination_settings = ssf.get_general_termination_settings(termination_latitude, termination_longitude)
+    general_termination_settings = ssf.get_general_termination_settings(termination_latitude, termination_longitude,
+                                                                        max_cpu_time)
 
     hybrid_termination_conditions_list = [time_termination_settings] + general_termination_settings
 
@@ -132,7 +134,7 @@ def run_simulation(
 
     # Get acceleration, integrator and propagator settings
     acceleration_models = ssf.get_acceleration_settings(bodies)
-    integrator_settings = ssf.get_integrator_settings(integrator_stepsize, integrator_coeff_set)
+    integrator_settings = ssf.get_integrator_settings(integrator_settings_dic)
     
     mu = bodies.get("Earth").gravitational_parameter
     
@@ -208,6 +210,6 @@ if __name__ == "__main__":
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
     decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
     
-    run_simulation("test2", 2 * 31 * 24 * 60**2, integrator_stepsize=600, decision_variable_dic=decision_variable_dic)
+    run_simulation("test2", 2 * 31 * 24 * 60**2, decision_variable_dic=decision_variable_dic)
 
 

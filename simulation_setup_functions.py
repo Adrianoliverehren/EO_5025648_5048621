@@ -18,7 +18,7 @@ from tudatpy.kernel import numerical_simulation
 from tudatpy.kernel.math import interpolators
 
 
-def get_general_termination_settings(termination_latitude, termination_longitude):
+def get_general_termination_settings(termination_latitude, termination_longitude, max_cpu_time):
     upper_lat_termination_settings = propagation_setup.propagator.dependent_variable_termination(
         dependent_variable_settings=propagation_setup.dependent_variable.latitude("SUPER_SAT_37k", "Earth"),
         limit_value=termination_latitude,
@@ -44,8 +44,10 @@ def get_general_termination_settings(termination_latitude, termination_longitude
         terminate_exactly_on_final_condition=False
     )
 
+    cpu_termination_setting = propagation_setup.propagator.cpu_time_termination(max_cpu_time)
+
     return [upper_lat_termination_settings, lower_lat_termination_settings, upper_long_termination_settings,
-            lower_long_termination_settings]
+            lower_long_termination_settings, cpu_termination_setting]
 
 
 def get_integrator_settings(integrator_settings_dic):
