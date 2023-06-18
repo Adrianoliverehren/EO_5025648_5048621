@@ -460,8 +460,20 @@ def save_dependent_variable_info(dictionary, filename):
             # Write each item to a new row in the text file
             file.write(f"{key}: {value}\n")   
 
+def json_safe_dic(dictionary):
+    safe_dic = {}
+    # Open the text file in write mode
+    for key, value in dictionary.items():
+        # Write each item to a new row in the text file
+        if type(value) == np.ndarray:
+            value = value.tolist()
+        safe_dic[str(key)] = value
+    return safe_dic
+    
 
 def save_dict_to_json(data, filename):
+    path = pathlib.Path(filename)
+    path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(filename, 'w') as file:
         json.dump(data, file, indent=4, separators=(',', ': '))

@@ -161,6 +161,8 @@ def run_simulation(
     
     dynamics_simulator = numerical_simulation.create_dynamics_simulator(
         bodies, propagator_settings)
+        
+    first_cpu_time = list(dynamics_simulator.cumulative_computation_time_history.values())[-1]
 
     # If terminated based on reaching impulse time
     if list(dynamics_simulator.state_history.keys())[-1] == decision_variable_dic['t_impulse']:
@@ -194,11 +196,23 @@ def run_simulation(
                                     output_variables=default_dep_vars)
 
         dynamics_simulator_2 = numerical_simulation.create_dynamics_simulator(bodies, propagator_settings)
+        second_cpu_time = list(dynamics_simulator.cumulative_computation_time_history.values())[-1]
+        
     else:
         dynamics_simulator_2 = None
-
+        second_cpu_time = 0
+    
+    dep_vars_id_dic = hf.json_safe_dic(dynamics_simulator.propagation_results.dependent_variable_ids)
+    safe_decision_variable_dic = hf.json_safe_dic(decision_variable_dic)
+            
+    propagation_info_dic = {
+        "CPU_time": first_cpu_time + second_cpu_time,
+        "decision_variable_dic": safe_decision_variable_dic,
+        "dependent_variable_ids": dep_vars_id_dic
+    }        
+    
+    hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
     hf.save_dynamics_simulator_to_files(path_to_save_data, dynamics_simulator, dynamics_simulator_2)
-    hf.save_dependent_variable_info(dynamics_simulator.propagation_results.dependent_variable_ids, path_to_save_data + "/dependent_variable_ids.dat")
 
 
 
@@ -210,6 +224,6 @@ if __name__ == "__main__":
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
     decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
     
-    run_simulation("test2", 2 * 31 * 24 * 60**2, decision_variable_dic=decision_variable_dic)
+    run_simulation("test2", 2 * 31 * 24 * 60**2)
 
 
