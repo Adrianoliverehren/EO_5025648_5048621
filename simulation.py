@@ -1,5 +1,7 @@
 # General imports
 import os
+import pdb
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -56,7 +58,7 @@ default_dep_vars = [
             body_undergoing_acceleration="SUPER_SAT_37k",
             body_exerting_acceleration="Moon"),
 ]
-
+default_decision_variable_dic = {'dv_mag': 0, 'dv_unit_vect': np.array([1, 0, 0]), 't_impulse': 0}
 
 def get_empty_body_settings(
     global_frame_origin = 'Earth',
@@ -81,7 +83,7 @@ def get_empty_body_settings(
 def run_simulation(
     path_to_save_data,
     maximum_duration,
-    decision_variable_dic=None,
+    decision_variable_dic=default_decision_variable_dic,
     simulation_start_epoch=0,
     termination_latitude=np.deg2rad(0.32),
     termination_longitude=np.deg2rad(0.32),
@@ -98,7 +100,6 @@ def run_simulation(
     )
         
     bodies = environment_setup.create_system_of_bodies(body_settings)
-    
     bodies.create_empty_body("SUPER_SAT_37k")
 
     ######################################################################################
@@ -107,13 +108,17 @@ def run_simulation(
 
     ######################################################################################
 
+    # Check if V impulse at t!=0
     if decision_variable_dic:
-        pass    # Set time termination = decision_variable_dic['t_impulse']
-
-    time_termination_settings = propagation_setup.propagator.time_termination(
-        simulation_start_epoch + maximum_duration,
-        terminate_exactly_on_final_condition=False
-    )
+        time_termination_settings = propagation_setup.propagator.time_termination(
+            simulation_start_epoch + decision_variable_dic['t_impulse'],
+            terminate_exactly_on_final_condition=True
+        )
+    else:
+        time_termination_settings = propagation_setup.propagator.time_termination(
+            simulation_start_epoch + maximum_duration,
+            terminate_exactly_on_final_condition=True
+        )
 
     general_termination_settings = ssf.get_general_termination_settings(termination_latitude, termination_longitude)
 
@@ -124,40 +129,12 @@ def run_simulation(
         hybrid_termination_conditions_list,
         fulfill_single_condition=True
         )   
-    
-    ######################################################################################
-    
-    # ACCELERATIONS
-    
-    ######################################################################################
-    
-    acceleration_settings_on_vehicle = {
-        # "Earth": [propagation_setup.acceleration.point_mass_gravity()],
-        "Earth": [propagation_setup.acceleration.spherical_harmonic_gravity(10, 10)],
-        "Moon": [propagation_setup.acceleration.point_mass_gravity()],
-        "Sun": [propagation_setup.acceleration.point_mass_gravity()],
-    }
-    
-    acceleration_settings = {'SUPER_SAT_37k': acceleration_settings_on_vehicle}
-    acceleration_models = propagation_setup.create_acceleration_models(
-        bodies,
-        acceleration_settings,
-        ["SUPER_SAT_37k"],
-        ["Earth"])
-        
-    ######################################################################################
-    
-    # PROPAGATOR CONDITIONS
-    
-    ######################################################################################
-        
+
+    # Get acceleration, integrator and propagator settings
+    acceleration_models = ssf.get_acceleration_settings(bodies)
     integrator_settings = ssf.get_integrator_settings(integrator_stepsize, integrator_coeff_set)
     
     mu = bodies.get("Earth").gravitational_parameter
-    # T = 24*60**2
-    T = constants.JULIAN_DAY
-
-    # default_init_mee[0] = ((T/(2*np.pi))**2 * mu)**(1/3)
     
     cartesian_init_state = element_conversion.mee_to_cartesian(
         default_init_mee,
@@ -165,7 +142,7 @@ def run_simulation(
         False
     )
     
-    if decision_variable_dic:        
+    if decision_variable_dic['t_impulse'] == 0:
         delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]        
         cartesian_init_state[3:6] += delta_v
     
@@ -182,10 +159,43 @@ def run_simulation(
     
     dynamics_simulator = numerical_simulation.create_dynamics_simulator(
         bodies, propagator_settings)
-    
-    print(dynamics_simulator.propagation_termination_details.termination_reason)
 
-    hf.save_dynamics_simulator_to_files(path_to_save_data, dynamics_simulator)
+    # If terminated based on reaching impulse time
+    if list(dynamics_simulator.state_history.keys())[-1] == decision_variable_dic['t_impulse']:
+        # Apply velocity impulse
+        current_epoch = list(dynamics_simulator.state_history.keys())[-1]
+        current_state = dynamics_simulator.state_history[current_epoch].copy()
+        delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        current_state[3:6] += delta_v
+
+        # Update termination settings
+        time_termination_settings = propagation_setup.propagator.time_termination(
+            current_epoch + maximum_duration,
+            terminate_exactly_on_final_condition=True
+        )
+
+        new_termination_settings_list = [time_termination_settings] + general_termination_settings
+        hybrid_termination_settings = propagation_setup.propagator.hybrid_termination(
+            new_termination_settings_list,
+            fulfill_single_condition=True
+        )
+
+        propagator_settings = propagation_setup.propagator.translational(
+                                    central_bodies=["Earth"],
+                                    acceleration_models=acceleration_models,
+                                    bodies_to_integrate=["SUPER_SAT_37k"],
+                                    initial_states=current_state,
+                                    initial_time=current_epoch,
+                                    integrator_settings=integrator_settings,
+                                    termination_settings= hybrid_termination_settings,
+                                    propagator=propagation_setup.propagator.cowell,
+                                    output_variables=default_dep_vars)
+
+        dynamics_simulator_2 = numerical_simulation.create_dynamics_simulator(bodies, propagator_settings)
+    else:
+        dynamics_simulator_2 = None
+
+    hf.save_dynamics_simulator_to_files(path_to_save_data, dynamics_simulator, dynamics_simulator_2)
     hf.save_dependent_variable_info(dynamics_simulator.propagation_results.dependent_variable_ids, path_to_save_data + "/dependent_variable_ids.dat")
 
 
@@ -196,7 +206,7 @@ if __name__ == "__main__":
     
     decision_variable_dic["dv_mag"] = -.1        
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
-    decision_variable_dic['t_impulse'] = 1200 * 20
+    decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
     
     run_simulation("test2", 2 * 31 * 24 * 60**2, integrator_stepsize=600, decision_variable_dic=decision_variable_dic)
 

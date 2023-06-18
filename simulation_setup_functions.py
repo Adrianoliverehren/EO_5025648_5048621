@@ -60,6 +60,22 @@ def get_integrator_settings(integrator_settings_dic):
     return integrator_settings
 
 
+def get_acceleration_settings(bodies):
+    acceleration_settings_on_vehicle = {
+        # "Earth": [propagation_setup.acceleration.point_mass_gravity()],
+        "Earth": [propagation_setup.acceleration.spherical_harmonic_gravity(10, 10)],
+        "Moon": [propagation_setup.acceleration.point_mass_gravity()],
+        "Sun": [propagation_setup.acceleration.point_mass_gravity()],
+    }
+
+    acceleration_settings = {'SUPER_SAT_37k': acceleration_settings_on_vehicle}
+    acceleration_models = propagation_setup.create_acceleration_models(
+        bodies,
+        acceleration_settings,
+        ["SUPER_SAT_37k"],
+        ["Earth"])
+
+    return acceleration_models
 
 if __name__ == "__main__":
     default_integrator_settings_dic = {

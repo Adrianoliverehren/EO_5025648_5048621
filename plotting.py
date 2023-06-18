@@ -12,7 +12,7 @@ def plot_dep_vars(folder_path):
     vy_ground = dep_vars[3]
     vz_ground = dep_vars[4]
     
-    geo_lat = dep_vars[5]*  np.rad2deg(1)
+    geo_lat = dep_vars[5] * np.rad2deg(1)
     lat = dep_vars[6] * np.rad2deg(1)
     long = dep_vars[7] * np.rad2deg(1)
     
