@@ -26,4 +26,4 @@ def plot_dep_vars(folder_path):
     plt.show()
     
     
-plot_dep_vars("test2")
+plot_dep_vars(hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_45")

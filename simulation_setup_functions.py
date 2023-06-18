@@ -57,8 +57,38 @@ def get_integrator_settings(integrator_settings_dic):
             integrator_settings_dic["step_size"],
             integrator_settings_dic["integrator_coeff_set"])
     
+    if integrator_settings_dic["type"] == "multistage.variable":
+        integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
+            initial_time_step=1.0,
+            coefficient_set =integrator_settings_dic["integrator_coeff_set"],
+            minimum_step_size=np.finfo(float).eps,
+            maximum_step_size=np.inf,
+            relative_error_tolerance=integrator_settings_dic["rel_tol"],
+            absolute_error_tolerance=integrator_settings_dic["abs_tol"]
+            )
     
-        
+    if integrator_settings_dic["type"] == "extrapolation.fixed":
+        integrator_settings = propagation_setup.integrator.bulirsch_stoer(
+            initial_time_step=integrator_settings_dic["step_size"],
+            extrapolation_sequence=integrator_settings_dic["integrator_coeff_set"],
+            maximum_number_of_steps=integrator_settings_dic["extrapolation_max_no_steps"],
+            minimum_step_size=integrator_settings_dic["step_size"],
+            maximum_step_size=integrator_settings_dic["step_size"],
+            relative_error_tolerance=np.inf,
+            absolute_error_tolerance=np.inf
+            )
+    
+    if integrator_settings_dic["type"] == "extrapolation.variable":
+        integrator_settings = propagation_setup.integrator.bulirsch_stoer(
+            initial_time_step=1.0,
+            extrapolation_sequence=integrator_settings_dic["integrator_coeff_set"],
+            maximum_number_of_steps=integrator_settings_dic["extrapolation_max_no_steps"],
+            minimum_step_size=np.finfo(float).eps,
+            maximum_step_size=np.inf,
+            relative_error_tolerance=integrator_settings_dic["rel_tol"],
+            absolute_error_tolerance=integrator_settings_dic["abs_tol"]
+            )
+    
     return integrator_settings
 
 
