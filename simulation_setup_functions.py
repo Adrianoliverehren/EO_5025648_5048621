@@ -47,3 +47,10 @@ def get_general_termination_settings(termination_latitude, termination_longitude
     return [upper_lat_termination_settings, lower_lat_termination_settings, upper_long_termination_settings,
             lower_long_termination_settings]
 
+
+def get_integrator_settings(integrator_stepsize, integrator_coeff_set):
+    return propagation_setup.integrator.runge_kutta_fixed_step_size(
+            integrator_stepsize,
+            integrator_coeff_set)
+
+

@@ -146,9 +146,7 @@ def run_simulation(
     
     ######################################################################################
         
-    integrator_settings = propagation_setup.integrator.runge_kutta_fixed_step_size(
-            integrator_stepsize,
-            integrator_coeff_set)
+    integrator_settings = ssf.get_integrator_settings(integrator_stepsize, integrator_coeff_set)
     
     mu = bodies.get("Earth").gravitational_parameter
     # T = 24*60**2
