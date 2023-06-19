@@ -57,7 +57,6 @@ if __name__ == '__main__':
         for x, f, dxdf in zip(sorted_array[0], sorted_array[1], derivative_arr):
             log_sensitivity_row.append(log_sensitivity(x, f, dxdf))
         log_sensitivity_matrix.append(log_sensitivity_row)
-
     # Plot
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111)

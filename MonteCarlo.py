@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         parameters[sim_index] = decision_parameters_dict
 
-    with mp.get_context("spawn").Pool(cores_to_use) as pool:
+    with mp.get_context("spawn").Pool(cores_to_use, maxtasksperchild=8) as pool:
         inputs = []
         for run_idx, parameter_set in enumerate(list(parameters.values())):
             inputs.append((parameter_set, run_idx, design_space_method))
