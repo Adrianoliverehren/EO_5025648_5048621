@@ -164,6 +164,7 @@ def run_simulation(
         bodies, propagator_settings)
         
     first_cpu_time = list(dynamics_simulator.cumulative_computation_time_history.values())[-1]
+    first_f_evals = list(dynamics_simulator.cumulative_number_of_function_evaluations.values())[-1]
 
     # If terminated based on reaching impulse time
     if list(dynamics_simulator.state_history.keys())[-1] == decision_variable_dic['t_impulse']:
@@ -198,16 +199,19 @@ def run_simulation(
 
         dynamics_simulator_2 = numerical_simulation.create_dynamics_simulator(bodies, propagator_settings)
         second_cpu_time = list(dynamics_simulator.cumulative_computation_time_history.values())[-1]
+        second_f_evals = list(dynamics_simulator.cumulative_number_of_function_evaluations.values())[-1]
         
     else:
         dynamics_simulator_2 = None
         second_cpu_time = 0
+        second_f_evals = 0
     
     dep_vars_id_dic = hf.json_safe_dic(dynamics_simulator.propagation_results.dependent_variable_ids)
     safe_decision_variable_dic = hf.json_safe_dic(decision_variable_dic)
             
     propagation_info_dic = {
         "CPU_time": first_cpu_time + second_cpu_time,
+        "f_evals": first_f_evals + second_f_evals,
         "decision_variable_dic": safe_decision_variable_dic,
         "dependent_variable_ids": dep_vars_id_dic
     }        

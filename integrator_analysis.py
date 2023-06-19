@@ -4,6 +4,7 @@ from tudatpy.kernel.numerical_simulation import propagation_setup
 import helper_functions as hf
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import multiprocessing as mp
 
 RK_integrators_fixed = {
     "euler_forward": propagation_setup.integrator.CoefficientSets.euler_forward,   
@@ -49,6 +50,15 @@ sample_decision_variable_dic["dv_mag"] = -.1
 sample_decision_variable_dic["dv_unit_vect"] = np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
 sample_decision_variable_dic['t_impulse'] = 31 * 24 * 60**2
 
+
+benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_78"
+
+def make_log(i, results, len_data):
+    def logger(evaluation):
+        results.append(evaluation)
+        print(f"{len(results)} / {len_data} completed, {len_data - len(results)} remaining")
+        del evaluation
+    return logger
 
 def gen_benchmarks():
     
@@ -97,26 +107,25 @@ def plot_benchmarks():
     hf.plot_arrays(time_in_days, [x_error, y_error, z_error], keep_in_memory=True, x_label="Time [days]",
                    y_label="pos error [m]", legend=["x", "y", "z"])
 
-
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
     
     sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
                        termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                        integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
-                       max_cpu_time=30*60)
+                       max_cpu_time=5)
 
-def investigate_integrators(
+def get_integrator_investigation_input_list(
     fixed_multistep = False,
     variable_multistep = False,
     fixed_extrapolation = False,
     variable_extrapolation = False,
-):
+    ):
     
     fixed_stepsizes = 2.**np.arange(7, 13, 1)
     
-    tolearances = 10.**np.arange(-12, -3, 1)
+    tolerances = 10.**np.arange(-12, -3, 1)
     
-    no_steps = 2.**(1, 8, 1)
+    no_steps = 2.**np.arange(1, 8, 1)
     
     input_list = []
     
@@ -124,7 +133,7 @@ def investigate_integrators(
         # fixed multistep integrators
         for stepsize in fixed_stepsizes:
             for key, value in RK_integrators_fixed.items():
-                path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/fixed/{key}/dt={stepsize:.0e}"
+                path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/fixed/{key}/dt={int(stepsize)}"
                 integrator_settings_dic = {
                     "type": "multistage.fixed",
                     "step_size": stepsize,
@@ -133,8 +142,8 @@ def investigate_integrators(
                 input_list.append([path_to_save_data, integrator_settings_dic])
     if variable_multistep:
         # variable multistep integrators
-        for atol in tolearances:
-            for rtol in tolearances:
+        for atol in tolerances:
+            for rtol in tolerances:
                 for key, value in RK_integrators_variable.items():
                     path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/variable/{key}/atol={atol:.0e}_rtol={rtol:.0e}"
                     integrator_settings_dic = {
@@ -150,7 +159,7 @@ def investigate_integrators(
         for stepsize in fixed_stepsizes:
             for step in no_steps:
                 for key, value in extrapolarion_integrators.items():
-                    path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/extrapolation/fixed/{key}/dt={stepsize:.0e}"
+                    path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/extrapolation/fixed/{key}/max_no_steps={int(step)}/dt={int(stepsize)}"
                     integrator_settings_dic = {
                         "type": "extrapolation.fixed",
                         "extrapolation_max_no_steps": step,
@@ -160,18 +169,116 @@ def investigate_integrators(
                     input_list.append([path_to_save_data, integrator_settings_dic])
     if variable_extrapolation:
         # variable extrapolation integrators
-        for atol in tolearances:
-            for rtol in tolearances:
-                for key, value in extrapolarion_integrators.items():
-                    path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/variable/{key}/atol={atol:.0e}_rtol={rtol:.0e}"
-                    integrator_settings_dic = {
-                        "type": "multistage.variable",
-                        "rel_tol": rtol,
-                        "abs_tol": atol,
-                        "integrator_coeff_set": value
-                    }
-                    input_list.append([path_to_save_data, integrator_settings_dic])
+        for atol in tolerances:
+            for rtol in tolerances:
+                for step in no_steps:
+                    for key, value in extrapolarion_integrators.items():
+                        path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/extrapolation/variable/{key}/max_no_steps={int(step)}/atol={atol:.0e}_rtol={rtol:.0e}"
+                        integrator_settings_dic = {
+                            "type": "extrapolation.variable",
+                            "extrapolation_max_no_steps": step,
+                            "rel_tol": rtol,
+                            "abs_tol": atol,
+                            "integrator_coeff_set": value
+                        }
+                        input_list.append([path_to_save_data, integrator_settings_dic])
+                        
+    return input_list
+
+def investigate_integrators(
+    input_list,
+    mp_nodes=None
+):    
+
+    if mp_nodes:    
+        pool = mp.Pool(mp_nodes, maxtasksperchild=40)
+        results = []
+        for i, input in enumerate(input_list):
+            pool.apply_async(run_sim_for_integrator_analysis, args=input, callback=make_log(i, results, len(input_list)))
+        pool.close()
+        pool.join()  
     
+    else:
+        i = 0
+        for input in input_list:
+            _ = run_sim_for_integrator_analysis(*input)
+            i += 1
+            print(f"{i} / {len(input_list)} completed")
+            
+
+def compare_integrators_with_mp(
+    old_input_list,
+    mp_nodes=None
+):    
+    
+    bench_num_states = np.genfromtxt(benchmark_path + "/state_history.dat").T
+    bench_num_states_interpolator = interp1d(bench_num_states[0], bench_num_states[1:])
+    bench_end_t = bench_num_states[0][-1]
+    
+    input_list = []
+    for inp in old_input_list:
+        input_list.append([inp[0], bench_num_states_interpolator, bench_end_t])
+    
+
+    if mp_nodes:    
+        pool = mp.Pool(mp_nodes, maxtasksperchild=40)
+        results = []
+        for i, input in enumerate(input_list):
+            pool.apply_async(compare_integrator_to_benchmark, args=input, callback=make_log(i, results, len(input_list)))
+        pool.close()
+        pool.join()  
+    
+    else:
+        i = 0
+        for input in input_list:
+            _ = compare_integrator_to_benchmark(*input)
+            i += 1
+            print(f"{i} / {len(input_list)} completed")
+
+def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, bench_end_t):
+    
+    num_states = np.genfromtxt(folder_path + "/state_history.dat").T
+    
+    end_t = num_states[0][-1]
+    
+    integrator_eval_dict = {}
+    
+    if end_t * 0.995 < bench_end_t < end_t * 1.005:
+        # propagation ended close to the required point
+        integrator_eval_dict["finalized_correctly"] = True
+        
+        shortest_time = min(bench_end_t, end_t)
+        eval_array = np.arange(0, shortest_time+60, 60)
+        
+        num_states_interpolatored = interp1d(num_states[0], num_states[1:])(eval_array)
+        bench_num_states_interpolated = bench_num_states_interpolator(eval_array)
+        
+        error_states = bench_num_states_interpolated - num_states_interpolatored
+        
+        save_error_states = np.zeros((len(error_states.T[0])+1, len(error_states[0])))
+        
+        save_error_states[0] = eval_array
+        save_error_states[1:] = error_states
+        
+        print(np.max(error_states))
+        
+        np.savetxt(folder_path + "/state_errors.dat", save_error_states.T)        
+        
+        pos_error = np.linalg.norm(error_states[0:3], axis=0)
+    
+        integrator_eval_dict["max_pos_error"] = np.max(pos_error)        
+        
+    else:
+        integrator_eval_dict["finalized_correctly"] = False
+        
+        
+    hf.save_dict_to_json(integrator_eval_dict, folder_path + "/integrator_eval_dict.dat")
+    
+    
+    pass
+
+
+
 
 
 
@@ -180,7 +287,13 @@ def investigate_integrators(
 
 if __name__ == "__main__":
     
-    investigate_integrators()
+    
+    input_lst = get_integrator_investigation_input_list(True)
+    input_lst = get_integrator_investigation_input_list(True, True, False, False)
+        
+    # investigate_integrators(input_lst, 4)
+    
+    compare_integrators_with_mp(input_lst, None)
         
     # plot_benchmarks()
     
