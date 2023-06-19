@@ -479,14 +479,20 @@ def save_dict_to_json(data, filename):
         json.dump(data, file, indent=4, separators=(',', ': '))
         
 
-def save_dynamics_simulator_to_files(output_path, dynamics_simulator, dynamics_simulator_2):
-    if dynamics_simulator_2 is None:
-        save2txt(dynamics_simulator.state_history, 'state_history.dat', output_path)
-        save2txt(dynamics_simulator.dependent_variable_history, 'dependent_variable_history.dat', output_path)
-    else:
-        stacked_state_history = dynamics_simulator.state_history | dynamics_simulator_2.state_history
-        stacked_dep_vars_history = dynamics_simulator.dependent_variable_history | \
-            dynamics_simulator_2.dependent_variable_history
-
+def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked_dep_vars_history):
         save2txt(stacked_state_history, 'state_history.dat', output_path)
         save2txt(stacked_dep_vars_history, 'dependent_variable_history.dat', output_path)
+
+
+def constraint():
+    return 0.00503
+
+
+def calculate_obj(dependent_var_history):
+    for t in dependent_var_history.keys():
+        current_dep_vars = dependent_var_history[t]
+        if current_dep_vars[5] > constraint() or current_dep_vars[6] > constraint() or \
+                current_dep_vars[5] < -constraint() or current_dep_vars[6] < -constraint():
+            return t
+
+
