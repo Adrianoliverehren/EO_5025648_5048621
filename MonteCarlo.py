@@ -28,7 +28,7 @@ def convert_mp_output_to_dict(tup, di):
 def monte_carlo_entry(current_param_dict, sim_idx, design_space_method):
     savepath = f'./DesignSpace/{design_space_method}/sim{sim_idx}/'
     return sim.run_simulation(savepath,
-                              2 * 31 * 24 * 60**2,
+                              6 * 31 * 24 * 60**2,
                               decision_variable_dic=current_param_dict,
                               simulation_start_epoch=0,
                               termination_latitude=np.deg2rad(0.32),
@@ -38,6 +38,7 @@ def monte_carlo_entry(current_param_dict, sim_idx, design_space_method):
                               sim_idx=sim_idx)
 
 
+""" WARNING, RUNNING THIS FILE WILL GENERATE ~10GB OF DATA"""
 if __name__ == '__main__':
     design_space_method = 'monte_carlo'
     # design_space_method = 'monte_carlo_one_at_a_time'
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     cores_to_use = mp.cpu_count() - 2
     current_dir = os.path.dirname(__file__)
 
-    decision_parameter_range = [[-2, -2, -2, 0], [2, 2, 2, 15*24*60*60]]
+    decision_parameter_range = [[-0.5, -0.5, -0.5, 0], [0.5, 0.5, 0.5, 15*24*60*60]]
 
     if design_space_method == 'monte_carlo_one_at_a_time':
         number_of_simulations_per_parameter = 2**7
@@ -64,7 +65,7 @@ if __name__ == '__main__':
         # THE SAME sequence of numbers between 0-1 used to scale each parameter separately
         fractional_variation_sample = sobol_sequence.random_base2(m)
     else:
-        number_of_simulations = 2**7
+        number_of_simulations = 2**12
         np.random.seed(random_seed)  # Slightly outdated way of doing this, but works
         print('\n Random Seed :', random_seed, '\n')
 

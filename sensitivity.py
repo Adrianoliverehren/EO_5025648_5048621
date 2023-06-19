@@ -25,7 +25,7 @@ if __name__ == '__main__':
     v3_arr = []
     t_impulse_arr = []
     #
-    for i in range(128):
+    for i in range(2**12):
         sim_dir = f'sim{i}'
         full_dir = './DesignSpace/monte_carlo/' + sim_dir + '/'
         if sim_dir != 'objectives_constraints.dat' and sim_dir != 'parameter_values.dat':
@@ -36,9 +36,7 @@ if __name__ == '__main__':
             v3_arr.append(decision_var_dict['dv_mag'] * decision_var_dict['dv_unit_vect'][2])
             t_impulse_arr.append(decision_var_dict['t_impulse'])
     # Transform time to days
-    print(t_impulse_arr)
     t_impulse_arr = np.array(t_impulse_arr) / (24 * 60 * 60)
-    print(t_impulse_arr)
 
     # Sort arrays such that they each are in ascending order of decision variable
     # [x for _, x in sorted(zip(Y, X))]
@@ -47,8 +45,6 @@ if __name__ == '__main__':
     v2_sorted = [sorted(v2_arr), [t for _, t in sorted(zip(v2_arr, t_max_arr))]]
     v3_sorted = [sorted(v3_arr), [t for _, t in sorted(zip(v3_arr, t_max_arr))]]
     t_impulse_sorted = [sorted(t_impulse_arr), [t for _, t in sorted(zip(t_impulse_arr, t_max_arr))]]
-
-    print(t_impulse_sorted[0])
 
     # For every decision variable, finite difference
     sorted_arrays = [v1_sorted, v2_sorted, v3_sorted, t_impulse_sorted]

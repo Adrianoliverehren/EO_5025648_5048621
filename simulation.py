@@ -34,7 +34,7 @@ default_init_mee[-1] = np.deg2rad(-80+0.147)
 
 default_integrator_settings_dic = {
     "type": "multistage.fixed",
-    "step_size": 1200,
+    "step_size": 240,
     "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45,
     "propagator": propagation_setup.propagator.cowell
 }
@@ -93,7 +93,7 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0
 ):
-    print(decision_variable_dic)
+    print(sim_idx)
     empty_body_settings = get_empty_body_settings()
     
     body_settings = environment_setup.get_default_body_settings(
@@ -235,7 +235,8 @@ def run_simulation(
     hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
     hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
 
-    return sim_idx, hf.calculate_obj(stacked_dep_vars_history), hf.period_change(stacked_state_history)
+    return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
+                     hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'])]
 
 
 if __name__ == "__main__":
