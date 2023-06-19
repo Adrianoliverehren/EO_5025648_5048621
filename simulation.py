@@ -33,11 +33,12 @@ default_init_mee[0] = 42164177
 default_init_mee[-1] = np.deg2rad(-80+0.147)
 
 default_integrator_settings_dic = {
-    "type": "multistage.fixed",
-    "step_size": 1200,
-    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45,
-    "propagator": propagation_setup.propagator.cowell
-}
+        "type": "multistage.variable",
+        "rel_tol": 1e-10,
+        "abs_tol": 1e-12,
+        "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkdp_87,
+        "propagator": propagation_setup.propagator.cowell
+    }
 
 default_dep_vars = [
         propagation_setup.dependent_variable.altitude("SUPER_SAT_37k", "Earth"),

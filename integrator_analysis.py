@@ -57,9 +57,10 @@ sample_decision_variable_dic["dv_mag"] = -.1
 sample_decision_variable_dic["dv_unit_vect"] = np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
 sample_decision_variable_dic['t_impulse'] = 31 * 24 * 60**2
 
-benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_78"
+benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_56/dt=60"
 
 max_time = 5
+max_time = 30
 
 def make_log(i, results, len_data):
     def logger(evaluation):
@@ -68,52 +69,74 @@ def make_log(i, results, len_data):
         del evaluation
     return logger
 
-def gen_benchmarks():
+def gen_benchmarks(mp_nodes=None, rerun_sims=True):
     
-    print("Starting integrator analysis")
+    input_lst = []
     
-    rkf_45_benchmark_integrator_settings = {
-    "type": "multistage.fixed",
-    "step_size": 60,
-    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45
-    }
+    step_sizes = [60, 120, 240, 480, 960, 1920]
     
-    sim.run_simulation(hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_45", maximum_duration=6*31*24*60**2, 
-                       termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
-                       integrator_settings_dic=rkf_45_benchmark_integrator_settings, decision_variable_dic=sample_decision_variable_dic,
-                       max_cpu_time=30*60)
+    for step_size in step_sizes:
+        rkf_45_benchmark_integrator_settings = {
+            "type": "multistage.fixed",
+            "step_size": step_size,
+            "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45,
+            "propagator": propagation_setup.propagator.cowell
+        }
+        
+        rkf_56_benchmark_integrator_settings = {
+            "type": "multistage.fixed",
+            "step_size": step_size,
+            "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_56,
+            "propagator": propagation_setup.propagator.cowell
+        }
+        
+        input_lst.append([
+            hf.sim_data_dir + f"/integrator_analysis/benchmarks/rkf_45/dt={int(step_size)}",
+            rkf_45_benchmark_integrator_settings
+        ])
+        input_lst.append([
+            hf.sim_data_dir + f"/integrator_analysis/benchmarks/rkf_56/dt={int(step_size)}",
+            rkf_56_benchmark_integrator_settings
+        ])
+        
+    if rerun_sims:
+        investigate_integrators(input_lst, mp_nodes)
     
-    print("DONE with rkf45")
+    analyze_benchmarks(step_sizes)
     
-    rkf_78_benchmark_integrator_settings = {
-    "type": "multistage.fixed",
-    "step_size": 60,
-    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_78
-    }
+def analyze_benchmarks(step_sizes):
     
-    sim.run_simulation(hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_78", maximum_duration=6*31*24*60**2, 
-                       termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
-                       integrator_settings_dic=rkf_78_benchmark_integrator_settings, decision_variable_dic=sample_decision_variable_dic,
-                       max_cpu_time=30*60)
+    time_in_days_lst = []
+    x_error_lst = []
+    y_error_lst = []
+    z_error_lst = []
+    pos_error_lst = []
+    legend = []
     
-    print("DONE with rkf78")
-
-def plot_benchmarks():
+    for step_size in step_sizes:
     
-    num_states_45 = np.genfromtxt(hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_45/state_history.dat").T
-    num_states_78 = np.genfromtxt(hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_78/state_history.dat").T
-    
-    time_in_days = num_states_45[0] / (60**2 * 24)
-    
-    rkf_45_pos_interpolated = interp1d(num_states_45[0], num_states_45[1:4])(num_states_45[0])
-    rkf_78_pos_interpolated = interp1d(num_states_78[0], num_states_78[1:4])(num_states_45[0])
-    
-    x_error = rkf_45_pos_interpolated[0] - rkf_78_pos_interpolated[0]
-    y_error = rkf_45_pos_interpolated[1] - rkf_78_pos_interpolated[1]
-    z_error = rkf_45_pos_interpolated[2] - rkf_78_pos_interpolated[2]
-    
-    hf.plot_arrays(time_in_days, [x_error, y_error, z_error], keep_in_memory=True, x_label="Time [days]",
-                   y_label="pos error [m]", legend=["x", "y", "z"])
+        num_states_45 = np.genfromtxt(hf.sim_data_dir + f"/integrator_analysis/benchmarks/rkf_45/dt={int(step_size)}/state_history.dat").T
+        num_states_56 = np.genfromtxt(hf.sim_data_dir + f"/integrator_analysis/benchmarks/rkf_56/dt={int(step_size)}/state_history.dat").T
+        
+        time_in_days = num_states_45[0] / (60**2 * 24)
+        
+        rkf_45_pos_interpolated = interp1d(num_states_45[0], num_states_45[1:4], kind="cubic")(num_states_45[0])
+        rkf_56_pos_interpolated = interp1d(num_states_56[0], num_states_56[1:4], kind="cubic")(num_states_45[0])
+        
+        num_state_error = rkf_45_pos_interpolated - rkf_56_pos_interpolated
+        
+        pos_error = np.linalg.norm(num_state_error[:3], axis=0)
+              
+        time_in_days_lst.append(time_in_days)  
+        x_error_lst.append(num_state_error[0])
+        y_error_lst.append(num_state_error[1])
+        z_error_lst.append(num_state_error[2])
+        pos_error_lst.append(pos_error)
+        legend.append(f"dt={int(step_size)}")
+        
+    hf.plot_arrays(time_in_days_lst, pos_error_lst, keep_in_memory=False, x_label="Time [days]",
+                y_label="pos error [m]", legend=legend, path_to_save=hf.root_dir + "/Figures/benchmarks/error_vs_time.png",
+                y_log=True, plot_size=[6,6])
 
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
     
@@ -121,7 +144,6 @@ def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
                     termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                     integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
                     max_cpu_time=max_time)
-
 
 def get_integrator_investigation_input_list(
     fixed_multistep = False,
@@ -131,10 +153,10 @@ def get_integrator_investigation_input_list(
     propagators_to_use = ["cowell"]
     ):
     
-    fixed_stepsizes = 2.**np.arange(7, 13, 1)
+    fixed_stepsizes = 2.**np.arange(7, 11, 1)
     
-    tolerances = 10.**np.arange(-12, -3, 1)
-    
+    tolerances = 10.**np.arange(-16, -9, 2)
+        
     no_steps = 2.**np.arange(1, 5, 1)
     
     input_list = []
@@ -221,14 +243,13 @@ def investigate_integrators(
             i += 1
             print(f"{i} / {len(input_list)} completed")
             
-
 def compare_integrators_with_mp(
     old_input_list,
     mp_nodes=None
 ):    
     
     bench_num_states = np.genfromtxt(benchmark_path + "/state_history.dat").T
-    bench_num_states_interpolator = interp1d(bench_num_states[0], bench_num_states[1:])
+    bench_num_states_interpolator = interp1d(bench_num_states[0], bench_num_states[1:], kind="cubic")
     bench_end_t = bench_num_states[0][-1]
     
     input_list = []
@@ -237,7 +258,7 @@ def compare_integrators_with_mp(
     
 
     if mp_nodes:    
-        pool = mp.Pool(mp_nodes, maxtasksperchild=40000)
+        pool = mp.Pool(mp_nodes, maxtasksperchild=4)
         results = []
         for i, input in enumerate(input_list):
             pool.apply_async(compare_integrator_to_benchmark, args=input, callback=make_log(i, results, len(input_list)))
@@ -251,8 +272,20 @@ def compare_integrators_with_mp(
             i += 1
             print(f"{i} / {len(input_list)} completed")
 
+def remove_path_prefix(path, prefix):
+    if path.startswith(prefix):
+        return os.path.relpath(path, prefix)
+    else:
+        return path
+
 def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, bench_end_t):
     
+    # plot_title = remove_path_prefix(folder_path, hf.sim_data_dir + "/integrator_analysis")
+    # plot_path = plot_title.replace("\\", "_")
+    
+    # print(plot_path)
+    
+    # sys.exit()
     if os.path.exists(folder_path):
         
         num_states = np.genfromtxt(folder_path + "/state_history.dat").T
@@ -266,10 +299,15 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             integrator_eval_dict["finalized_correctly"] = True
             
             shortest_time = min(bench_end_t, end_t)
-            eval_array = np.arange(0, shortest_time+60, 60)
+            eval_array = np.linspace(0, shortest_time, 2000)
             
-            num_states_interpolatored = interp1d(num_states[0], num_states[1:])(eval_array)
+            eval_array_days = eval_array / (24*60**2)
+            
+            num_states_interpolatored = interp1d(num_states[0], num_states[1:], kind="cubic")(eval_array)
             bench_num_states_interpolated = bench_num_states_interpolator(eval_array)
+            
+            x_bench, y_bench, z_bench = bench_num_states_interpolated[0], bench_num_states_interpolated[1], bench_num_states_interpolated[2]
+            x, y, z = num_states_interpolatored[0], num_states_interpolatored[1], num_states_interpolatored[2]
             
             error_states = bench_num_states_interpolated - num_states_interpolatored
             
@@ -281,6 +319,19 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             np.savetxt(folder_path + "/state_errors.dat", save_error_states.T)        
             
             pos_error = np.linalg.norm(error_states[0:3], axis=0)
+            
+            plot_title = remove_path_prefix(folder_path, hf.sim_data_dir + "/integrator_analysis")
+            plot_path = plot_title.replace("\\", "_")
+            
+            hf.plot_arrays(
+                eval_array_days, [pos_error], x_label="Time [days]", y_labels="Error [m]", 
+                title=plot_title, path_to_save=hf.root_dir + f"/Figures/integrator_analysis/errors_over_time/{plot_path}.pdf",
+                y_log=True, plot_size=[6,6])
+            
+            hf.plot_arrays(
+                eval_array_days, [x_bench, y_bench, z_bench, x, y, z], x_label="Time [days]", y_labels="Pos [m]", 
+                title=plot_title, path_to_save=hf.root_dir + f"/Figures/integrator_analysis/position_over_time/{plot_path}.pdf",
+                plot_size=[6,6], legend=["x_bench", "y_bench", "z_bench", "x", "y", "z"])
         
             integrator_eval_dict["max_pos_error"] = np.max(pos_error)        
             
@@ -290,47 +341,75 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             
         hf.save_dict_to_json(integrator_eval_dict, folder_path + "/integrator_eval_dict.dat")
         
-def create_integrator_analysis_plots(input_lst):
+def create_integrator_analysis_plots(input_lst, regen_data=True):
         
     scatter_plot_data = [[],[]]
     
-    for inp in input_lst:
-        if os.path.exists(inp[0] + "/integrator_eval_dict.dat"):
-            integrator_eval_dict = hf.create_dic_drom_json(inp[0] + "/integrator_eval_dict.dat")
-            
-            if integrator_eval_dict["finalized_correctly"]:
-                
-                scatter_plot_data[1].append(integrator_eval_dict["max_pos_error"])
-                propagation_info_dic = hf.create_dic_drom_json(inp[0] + "/propagation_info_dic.dat")
-                scatter_plot_data[0].append(propagation_info_dic["f_evals"])
-                
-    plt.figure()
+    label_points = []
     
-    plt.scatter(scatter_plot_data[0], scatter_plot_data[1])
+    if regen_data:
     
-    plt.yscale("log")
+        for inp in input_lst:
+            if os.path.exists(inp[0] + "/integrator_eval_dict.dat"):
+                integrator_eval_dict = hf.create_dic_drom_json(inp[0] + "/integrator_eval_dict.dat")
                 
-    plt.show()
+                if integrator_eval_dict["finalized_correctly"]:
+                    
+                    if integrator_eval_dict["max_pos_error"] < 1e6:                
+                        scatter_plot_data[1].append(integrator_eval_dict["max_pos_error"])
+                        propagation_info_dic = hf.create_dic_drom_json(inp[0] + "/propagation_info_dic.dat")
+                        scatter_plot_data[0].append(propagation_info_dic["f_evals"])
+                        
+                        integrator_name = remove_path_prefix(inp[0], hf.sim_data_dir + "/integrator_analysis")
+                        
+                        label_points.append({
+                            "text": integrator_name,
+                            "x": propagation_info_dic["f_evals"],
+                            "y": integrator_eval_dict["max_pos_error"],
+                            "x_text": 10,
+                            "y_text": 10,
+                        })
         
+        np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/scatter_plot_data.npy", scatter_plot_data) 
+        np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/label_points.npy", label_points) 
         
-
-
+    else:
+        scatter_plot_data = np.load(hf.sim_data_dir + "/integrator_analysis/plotting_data/scatter_plot_data.npy", allow_pickle=True)
+        label_points = np.load(hf.sim_data_dir + "/integrator_analysis/plotting_data/label_points.npy", allow_pickle=True)
+    
+    # print(scatter_plot_data)
+    
+    # sys.exit()
+    
+    hf.plot_arrays(scatter_plot_data[0], [scatter_plot_data[1]], linewiths=[0]*len(scatter_plot_data[0]),
+                   y_log=True, y_label="Pos error [m]", x_label="f-evals [-]", x_log=True,
+                   label_points=label_points, keep_in_memory=True, markings=True)
+    
+    plt.show()    
+    
 
 if __name__ == "__main__":
         
-    print(hf.root_dir)
+    # gen_benchmarks(mp_nodes=6, rerun_sims=False)
+        
+    # sys.exit()    
+    
+    # print(hf.root_dir)
     
     # input_lst = get_integrator_investigation_input_list(True)
-    input_lst = get_integrator_investigation_input_list(True, True, False, False)
-    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    # input_lst = get_integrator_investigation_input_list(True, True, False, False)
+    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell"])
+    
+    print(len(input_lst))
         
-    investigate_integrators(input_lst, 4)
+    # investigate_integrators(input_lst, 4)
     
-    compare_integrators_with_mp(input_lst, 4)
+    # compare_integrators_with_mp(input_lst, 6)
     
-    # input_lst = get_integrator_investigation_input_list(False, False, True, True, ["cowell"])
+    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
     
-    # create_integrator_analysis_plots(input_lst)
+    create_integrator_analysis_plots(input_lst, regen_data=False)
         
     # plot_benchmarks()
     
