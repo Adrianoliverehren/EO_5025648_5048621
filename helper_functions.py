@@ -1,3 +1,5 @@
+import pdb
+import warnings
 import numpy as np
 from tudatpy.kernel.astro import frame_conversion
 import os
@@ -9,6 +11,8 @@ from scipy.integrate import cumtrapz
 import sys
 import pathlib
 import matplotlib.colors as mcolors
+import tudatpy.kernel.interface.spice as spice
+from tudatpy.kernel.astro.element_conversion import cartesian_to_keplerian
 from matplotlib import colors
 
 
@@ -488,11 +492,47 @@ def constraint():
     return 0.00503
 
 
-def calculate_obj(dependent_var_history):
+def calculate_obj(dependent_var_history, sim_idx):
     for t in dependent_var_history.keys():
         current_dep_vars = dependent_var_history[t]
         if current_dep_vars[5] > constraint() or current_dep_vars[6] > constraint() or \
                 current_dep_vars[5] < -constraint() or current_dep_vars[6] < -constraint():
             return t
+
+    # If condition was never violated
+    warnings.warn(f'Simulation #{sim_idx} never exceeded position constraint, returned final time')
+    return list(dependent_var_history.keys())[-1]
+
+
+def period_change(state_history, t_impulse):
+    t_arr = np.array(list(state_history.keys()))
+    state_history_arr = np.array(list(state_history.values()))
+
+    # Determine initial period
+    mu = spice.get_body_gravitational_parameter('Earth')
+    kepler_state_initial = cartesian_to_keplerian(state_history_arr[0], mu)
+    T_initial = 2 * np.pi * (kepler_state_initial[0]**3 / mu)**0.5
+
+    if t_impulse > t_arr[-1]:
+        return np.inf
+    # Determine T prior to impulse
+    prior_index = np.max(np.argwhere(t_arr < t_impulse))
+    kepler_state_prior = cartesian_to_keplerian(state_history_arr[prior_index], mu)
+    T_prior = 2 * np.pi * (kepler_state_prior[0]**3 / mu)**0.5
+
+    # Determine T after impulse
+    after_index = np.min(np.argwhere(t_arr > t_impulse))
+
+    kepler_state_after = cartesian_to_keplerian(state_history_arr[after_index], mu)
+    T_after = 2 * np.pi * (kepler_state_after[0]**3 / mu)**0.5
+
+    """
+    dT_arr = np.zeros(len(state_history_arr[:, 0]))
+    for idx, state in enumerate(state_history_arr):
+        kepler_state_current = cartesian_to_keplerian(state, mu)
+        T_current = (2 * np.pi * kepler_state_current[0]**3 / mu)**0.5
+        dT_arr[idx] = T_current - T_initial
+    """
+    return abs(T_after - T_initial) - abs(T_prior - T_initial)        # max(abs(dT_arr))
 
 

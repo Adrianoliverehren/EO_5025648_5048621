@@ -15,7 +15,7 @@ import simulation_setup_functions as ssf
 # Tudatpy imports
 from tudatpy.io import save2txt
 from tudatpy.kernel import constants
-from tudatpy.kernel.astro import element_conversion
+from tudatpy.kernel.astro import element_conversion, frame_conversion
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel.numerical_simulation import environment_setup
 from tudatpy.kernel.numerical_simulation import propagation_setup
@@ -94,7 +94,7 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0
 ):
-
+    print(sim_idx)
     empty_body_settings = get_empty_body_settings()
     
     body_settings = environment_setup.get_default_body_settings(
@@ -148,8 +148,12 @@ def run_simulation(
     )
     
     if decision_variable_dic['t_impulse'] == 0:
-        delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]        
-        cartesian_init_state[3:6] += delta_v
+        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        # Rotate delta_v to cartesian frame
+        rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
+        delta_v_cartesian = rotation_matrix @ rsw_delta_v
+
+        cartesian_init_state[3:6] += delta_v_cartesian
     
     propagator_settings = propagation_setup.propagator.translational(
         central_bodies=["Earth"],
@@ -173,8 +177,12 @@ def run_simulation(
         # Apply velocity impulse
         current_epoch = list(dynamics_simulator.state_history.keys())[-1]
         current_state = dynamics_simulator.state_history[current_epoch].copy()
-        delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
-        current_state[3:6] += delta_v
+        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+
+        # Rotate delta_v to cartesian frame
+        rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(current_state)
+        delta_v_cartesian = rotation_matrix @ rsw_delta_v
+        current_state[3:6] += delta_v_cartesian
 
         # Update termination settings
         time_termination_settings = propagation_setup.propagator.time_termination(
@@ -228,7 +236,8 @@ def run_simulation(
     hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
     hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
 
-    return sim_idx, hf.calculate_obj(stacked_dep_vars_history)
+    return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
+                     hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'])]
 
 
 if __name__ == "__main__":
@@ -238,7 +247,7 @@ if __name__ == "__main__":
     decision_variable_dic["dv_mag"] = -.1        
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
     decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
-    
+    print(decision_variable_dic)
     run_simulation("test2", 2 * 31 * 24 * 60**2)
 
 
