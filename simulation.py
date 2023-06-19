@@ -58,7 +58,7 @@ default_dep_vars = [
             body_undergoing_acceleration="SUPER_SAT_37k",
             body_exerting_acceleration="Moon"),
 ]
-default_decision_variable_dic = {'dv_mag': 0, 'dv_unit_vect': np.array([1, 0, 0]), 't_impulse': 0}
+default_decision_variable_dic = {'dv_mag': 0, 'dv_unit_vect': np.array([1, 0, 0]), 't_impulse': 0.5*24*60**2}
 
 
 def get_empty_body_settings(
@@ -89,7 +89,8 @@ def run_simulation(
     termination_latitude=np.deg2rad(0.32),
     termination_longitude=np.deg2rad(0.32),
     integrator_settings_dic=default_integrator_settings_dic,
-    max_cpu_time=30
+    max_cpu_time=30,
+    sim_idx=0
 ):
 
     empty_body_settings = get_empty_body_settings()
@@ -210,10 +211,18 @@ def run_simulation(
         "decision_variable_dic": safe_decision_variable_dic,
         "dependent_variable_ids": dep_vars_id_dic
     }        
-    
-    hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
-    hf.save_dynamics_simulator_to_files(path_to_save_data, dynamics_simulator, dynamics_simulator_2)
+    if dynamics_simulator_2 is None:
+        stacked_state_history = dynamics_simulator.state_history
+        stacked_dep_vars_history = dynamics_simulator.dependent_variable_history
+    else:
+        stacked_state_history = dynamics_simulator.state_history | dynamics_simulator_2.state_history
+        stacked_dep_vars_history = dynamics_simulator.dependent_variable_history | \
+            dynamics_simulator_2.dependent_variable_history
 
+    hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
+    hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
+
+    return sim_idx, hf.calculate_obj(stacked_dep_vars_history)
 
 
 if __name__ == "__main__":

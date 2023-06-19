@@ -2,6 +2,7 @@ import helper_functions as hf
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def plot_dep_vars(folder_path):
     
     dep_vars = np.genfromtxt(folder_path + "/dependent_variable_history.dat").T
