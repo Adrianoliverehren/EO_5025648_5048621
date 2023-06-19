@@ -35,7 +35,8 @@ default_init_mee[-1] = np.deg2rad(-80+0.147)
 default_integrator_settings_dic = {
     "type": "multistage.fixed",
     "step_size": 1200,
-    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45
+    "integrator_coeff_set": propagation_setup.integrator.CoefficientSets.rkf_45,
+    "propagator": propagation_setup.propagator.cowell
 }
 
 default_dep_vars = [
@@ -157,7 +158,7 @@ def run_simulation(
         initial_time=simulation_start_epoch,
         integrator_settings=integrator_settings,
         termination_settings=hybrid_termination_settings,
-        propagator=propagation_setup.propagator.cowell,
+        propagator=integrator_settings_dic["propagator"],
         output_variables=default_dep_vars)
     
     dynamics_simulator = numerical_simulation.create_dynamics_simulator(

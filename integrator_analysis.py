@@ -47,6 +47,11 @@ extrapolarion_integrators = {
     "deufelhard_sequence": propagation_setup.integrator.ExtrapolationMethodStepSequences.deufelhard_sequence
 }
 
+propagators = {
+    "cowell": propagation_setup.propagator.cowell, 
+    "mee": propagation_setup.propagator.gauss_modified_equinoctial, 
+    "usm_rod": propagation_setup.propagator.unified_state_model_modified_rodrigues_parameters}
+
 sample_decision_variable_dic = {}
 sample_decision_variable_dic["dv_mag"] = -.1        
 sample_decision_variable_dic["dv_unit_vect"] = np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
@@ -112,20 +117,18 @@ def plot_benchmarks():
 
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
     
-    print("working on \n", path_to_save_data, "\n")
-    try:
-        sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
-                        termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
-                        integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
-                        max_cpu_time=max_time)
-    except:
-        pass
+    sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
+                    termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
+                    integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
+                    max_cpu_time=max_time)
+
 
 def get_integrator_investigation_input_list(
     fixed_multistep = False,
     variable_multistep = False,
     fixed_extrapolation = False,
     variable_extrapolation = False,
+    propagators_to_use = ["cowell"]
     ):
     
     fixed_stepsizes = 2.**np.arange(7, 13, 1)
@@ -136,59 +139,65 @@ def get_integrator_investigation_input_list(
     
     input_list = []
     
-    if fixed_multistep:
-        # fixed multistep integrators
-        for stepsize in fixed_stepsizes:
-            for key, value in RK_integrators_fixed.items():
-                path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/fixed/{key}/dt={int(stepsize)}"
-                integrator_settings_dic = {
-                    "type": "multistage.fixed",
-                    "step_size": stepsize,
-                    "integrator_coeff_set": value
-                }
-                input_list.append([path_to_save_data, integrator_settings_dic])
-    if variable_multistep:
-        # variable multistep integrators
-        for atol in tolerances:
-            for rtol in tolerances:
-                for key, value in RK_integrators_variable.items():
-                    path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/multistage/variable/{key}/atol={atol:.0e}_rtol={rtol:.0e}"
-                    integrator_settings_dic = {
-                        "type": "multistage.variable",
-                        "rel_tol": rtol,
-                        "abs_tol": atol,
-                        "integrator_coeff_set": value
-                    }
-                    input_list.append([path_to_save_data, integrator_settings_dic])
-                    
-    if fixed_extrapolation:
-        # fixed extrapolation integrators
-        for stepsize in fixed_stepsizes:
-            for step in no_steps:
-                for key, value in extrapolarion_integrators.items():
-                    path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/extrapolation/fixed/{key}/max_no_steps={int(step)}/dt={int(stepsize)}"
-                    integrator_settings_dic = {
-                        "type": "extrapolation.fixed",
-                        "extrapolation_max_no_steps": int(step),
-                        "step_size": stepsize,
-                        "integrator_coeff_set": value
-                    }
-                    input_list.append([path_to_save_data, integrator_settings_dic])
-    if variable_extrapolation:
-        # variable extrapolation integrators
-        for atol in tolerances:
-            for rtol in tolerances:
-                for step in no_steps:
-                    for key, value in extrapolarion_integrators.items():
-                        path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/extrapolation/variable/{key}/max_no_steps={int(step)}/atol={atol:.0e}_rtol={rtol:.0e}"
+    for prop_name in propagators:
+        if prop_name in propagators_to_use:
+            if fixed_multistep:
+                # fixed multistep integrators
+                for stepsize in fixed_stepsizes:
+                    for key, value in RK_integrators_fixed.items():
+                        path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/{prop_name}/multistage/fixed/{key}/dt={int(stepsize)}"
                         integrator_settings_dic = {
-                            "type": "extrapolation.variable",
-                            "extrapolation_max_no_steps": int(step),
-                            "rel_tol": rtol,
-                            "abs_tol": atol,
-                            "integrator_coeff_set": value
+                            "type": "multistage.fixed",
+                            "step_size": stepsize,
+                            "integrator_coeff_set": value,
+                            "propagator": propagators[prop_name]
                         }
                         input_list.append([path_to_save_data, integrator_settings_dic])
+            if variable_multistep:
+                # variable multistep integrators
+                for atol in tolerances:
+                    for rtol in tolerances:
+                        for key, value in RK_integrators_variable.items():
+                            path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/{prop_name}/multistage/variable/{key}/atol={atol:.0e}_rtol={rtol:.0e}"
+                            integrator_settings_dic = {
+                                "type": "multistage.variable",
+                                "rel_tol": rtol,
+                                "abs_tol": atol,
+                                "integrator_coeff_set": value,
+                                "propagator": propagators[prop_name]
+                            }
+                            input_list.append([path_to_save_data, integrator_settings_dic])
+                            
+            if fixed_extrapolation:
+                # fixed extrapolation integrators
+                for stepsize in fixed_stepsizes:
+                    for step in no_steps:
+                        for key, value in extrapolarion_integrators.items():
+                            path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/{prop_name}/extrapolation/fixed/{key}/max_no_steps={int(step)}/dt={int(stepsize)}"
+                            integrator_settings_dic = {
+                                "type": "extrapolation.fixed",
+                                "extrapolation_max_no_steps": int(step),
+                                "step_size": stepsize,
+                                "integrator_coeff_set": value,
+                                "propagator": propagators[prop_name]
+                            }
+                            input_list.append([path_to_save_data, integrator_settings_dic])
+            if variable_extrapolation:
+                # variable extrapolation integrators
+                for atol in tolerances:
+                    for rtol in tolerances:
+                        for step in no_steps:
+                            for key, value in extrapolarion_integrators.items():
+                                path_to_save_data = hf.sim_data_dir + f"/integrator_analysis/{prop_name}/extrapolation/variable/{key}/max_no_steps={int(step)}/atol={atol:.0e}_rtol={rtol:.0e}"
+                                integrator_settings_dic = {
+                                    "type": "extrapolation.variable",
+                                    "extrapolation_max_no_steps": int(step),
+                                    "rel_tol": rtol,
+                                    "abs_tol": atol,
+                                    "integrator_coeff_set": value,
+                                    "propagator": propagators[prop_name]
+                                }
+                                input_list.append([path_to_save_data, integrator_settings_dic])
                         
     return input_list
 
@@ -281,15 +290,12 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             
         hf.save_dict_to_json(integrator_eval_dict, folder_path + "/integrator_eval_dict.dat")
         
-def create_integrator_analysis_plots():
-    
-    
-    all_integratos_input_lst = get_integrator_investigation_input_list(True, True, True, True)
-    
+def create_integrator_analysis_plots(input_lst):
+        
     scatter_plot_data = [[],[]]
     
-    for inp in all_integratos_input_lst:
-        if os.path.exists(inp[0]):
+    for inp in input_lst:
+        if os.path.exists(inp[0] + "/integrator_eval_dict.dat"):
             integrator_eval_dict = hf.create_dic_drom_json(inp[0] + "/integrator_eval_dict.dat")
             
             if integrator_eval_dict["finalized_correctly"]:
@@ -316,32 +322,17 @@ if __name__ == "__main__":
     
     # input_lst = get_integrator_investigation_input_list(True)
     input_lst = get_integrator_investigation_input_list(True, True, False, False)
-    input_lst = get_integrator_investigation_input_list(True, True, True, True)
+    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
         
-    investigate_integrators(input_lst, 15)
+    investigate_integrators(input_lst, 4)
     
-    compare_integrators_with_mp(input_lst, 15)
+    compare_integrators_with_mp(input_lst, 4)
     
-    # create_integrator_analysis_plots()
+    # input_lst = get_integrator_investigation_input_list(False, False, True, True, ["cowell"])
     
+    # create_integrator_analysis_plots(input_lst)
         
     # plot_benchmarks()
     
-    
-    
     # gen_benchmarks()
     
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
