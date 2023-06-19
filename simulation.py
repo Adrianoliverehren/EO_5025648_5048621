@@ -93,7 +93,7 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0
 ):
-
+    print(decision_variable_dic)
     empty_body_settings = get_empty_body_settings()
     
     body_settings = environment_setup.get_default_body_settings(
@@ -150,7 +150,7 @@ def run_simulation(
         rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
-        delta_v_cartesian = rotation_matrix * rsw_delta_v
+        delta_v_cartesian = rotation_matrix @ rsw_delta_v
 
         cartesian_init_state[3:6] += delta_v_cartesian
     
@@ -180,8 +180,7 @@ def run_simulation(
 
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(current_state)
-        delta_v_cartesian = rotation_matrix * rsw_delta_v
-
+        delta_v_cartesian = rotation_matrix @ rsw_delta_v
         current_state[3:6] += delta_v_cartesian
 
         # Update termination settings
@@ -246,7 +245,7 @@ if __name__ == "__main__":
     decision_variable_dic["dv_mag"] = -.1        
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
     decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
-    
+    print(decision_variable_dic)
     run_simulation("test2", 2 * 31 * 24 * 60**2)
 
 
