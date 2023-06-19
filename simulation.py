@@ -94,7 +94,6 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0
 ):
-    print(sim_idx)
     empty_body_settings = get_empty_body_settings()
     
     body_settings = environment_setup.get_default_body_settings(
