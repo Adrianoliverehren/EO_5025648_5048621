@@ -9,6 +9,8 @@ from scipy.integrate import cumtrapz
 import sys
 import pathlib
 import matplotlib.colors as mcolors
+import tudatpy.kernel.interface.spice as spice
+from tudatpy.kernel.astro.element_conversion import cartesian_to_keplerian
 from matplotlib import colors
 
 
@@ -494,5 +496,19 @@ def calculate_obj(dependent_var_history):
         if current_dep_vars[5] > constraint() or current_dep_vars[6] > constraint() or \
                 current_dep_vars[5] < -constraint() or current_dep_vars[6] < -constraint():
             return t
+
+
+def period_change(state_history):
+    state_history_arr = np.array(list(state_history.values()))
+    dT_arr = np.zeros(len(state_history_arr[0]))
+    mu = spice.get_body_gravitational_parameter('Earth')
+    kepler_state_initial = cartesian_to_keplerian(state_history_arr[0], mu)
+    T_initial = (2 * np.pi * kepler_state_initial[0]**3 / mu)**0.5
+    for idx, state in enumerate(state_history_arr):
+        kepler_state_current = cartesian_to_keplerian(state, mu)
+        T_current = (2 * np.pi * kepler_state_current[0]**3 / mu)**0.5
+        dT_arr[idx] = T_current - T_initial
+
+    return max(abs(dT_arr))
 
 

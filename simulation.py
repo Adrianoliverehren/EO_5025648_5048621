@@ -235,7 +235,7 @@ def run_simulation(
     hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
     hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
 
-    return sim_idx, hf.calculate_obj(stacked_dep_vars_history)
+    return sim_idx, hf.calculate_obj(stacked_dep_vars_history), hf.period_change(stacked_state_history)
 
 
 if __name__ == "__main__":
