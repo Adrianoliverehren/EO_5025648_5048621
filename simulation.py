@@ -15,7 +15,7 @@ import simulation_setup_functions as ssf
 # Tudatpy imports
 from tudatpy.io import save2txt
 from tudatpy.kernel import constants
-from tudatpy.kernel.astro import element_conversion
+from tudatpy.kernel.astro import element_conversion, frame_conversion
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel.numerical_simulation import environment_setup
 from tudatpy.kernel.numerical_simulation import propagation_setup
@@ -148,8 +148,11 @@ def run_simulation(
     
     if decision_variable_dic['t_impulse'] == 0:
         rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
-        # TODO: Rotate rsw_delta_v to inertial
-        cartesian_init_state[3:6] += rsw_delta_v
+        # Rotate delta_v to cartesian frame
+        rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
+        delta_v_cartesian = rotation_matrix * rsw_delta_v
+
+        cartesian_init_state[3:6] += delta_v_cartesian
     
     propagator_settings = propagation_setup.propagator.translational(
         central_bodies=["Earth"],
@@ -174,8 +177,12 @@ def run_simulation(
         current_epoch = list(dynamics_simulator.state_history.keys())[-1]
         current_state = dynamics_simulator.state_history[current_epoch].copy()
         rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
-        # TODO: Rotate rsw_delta_v to inertial
-        current_state[3:6] += rsw_delta_v
+
+        # Rotate delta_v to cartesian frame
+        rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(current_state)
+        delta_v_cartesian = rotation_matrix * rsw_delta_v
+
+        current_state[3:6] += delta_v_cartesian
 
         # Update termination settings
         time_termination_settings = propagation_setup.propagator.time_termination(
