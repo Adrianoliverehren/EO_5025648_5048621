@@ -147,8 +147,9 @@ def run_simulation(
     )
     
     if decision_variable_dic['t_impulse'] == 0:
-        delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]        
-        cartesian_init_state[3:6] += delta_v
+        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        # TODO: Rotate rsw_delta_v to inertial
+        cartesian_init_state[3:6] += rsw_delta_v
     
     propagator_settings = propagation_setup.propagator.translational(
         central_bodies=["Earth"],
@@ -172,8 +173,9 @@ def run_simulation(
         # Apply velocity impulse
         current_epoch = list(dynamics_simulator.state_history.keys())[-1]
         current_state = dynamics_simulator.state_history[current_epoch].copy()
-        delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
-        current_state[3:6] += delta_v
+        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        # TODO: Rotate rsw_delta_v to inertial
+        current_state[3:6] += rsw_delta_v
 
         # Update termination settings
         time_termination_settings = propagation_setup.propagator.time_termination(
