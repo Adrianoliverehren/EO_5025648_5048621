@@ -52,8 +52,9 @@ sample_decision_variable_dic["dv_mag"] = -.1
 sample_decision_variable_dic["dv_unit_vect"] = np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
 sample_decision_variable_dic['t_impulse'] = 31 * 24 * 60**2
 
-
 benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_78"
+
+max_time = 5
 
 def make_log(i, results, len_data):
     def logger(evaluation):
@@ -110,11 +111,13 @@ def plot_benchmarks():
                    y_label="pos error [m]", legend=["x", "y", "z"])
 
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
+    
+    print("working on \n", path_to_save_data, "\n")
     try:
         sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
                         termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                         integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
-                        max_cpu_time=5)
+                        max_cpu_time=max_time)
     except:
         pass
 
@@ -129,7 +132,7 @@ def get_integrator_investigation_input_list(
     
     tolerances = 10.**np.arange(-12, -3, 1)
     
-    no_steps = 2.**np.arange(1, 8, 1)
+    no_steps = 2.**np.arange(1, 5, 1)
     
     input_list = []
     
@@ -312,14 +315,14 @@ if __name__ == "__main__":
     print(hf.root_dir)
     
     # input_lst = get_integrator_investigation_input_list(True)
-    # input_lst = get_integrator_investigation_input_list(True, True, False, False)
-    # input_lst = get_integrator_investigation_input_list(True, True, False, False)
+    input_lst = get_integrator_investigation_input_list(True, True, False, False)
+    input_lst = get_integrator_investigation_input_list(True, True, True, True)
         
-    # investigate_integrators(input_lst, 15)
+    investigate_integrators(input_lst, 15)
     
-    # compare_integrators_with_mp(input_lst, 15)
+    compare_integrators_with_mp(input_lst, 15)
     
-    create_integrator_analysis_plots()
+    # create_integrator_analysis_plots()
     
         
     # plot_benchmarks()
