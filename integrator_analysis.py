@@ -59,7 +59,6 @@ sample_decision_variable_dic['t_impulse'] = 31 * 24 * 60**2
 
 benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_56/dt=60"
 
-max_time = 5
 max_time = 30
 
 def make_log(i, results, len_data):
@@ -70,7 +69,7 @@ def make_log(i, results, len_data):
     return logger
 
 def gen_benchmarks(mp_nodes=None, rerun_sims=True):
-    
+        
     input_lst = []
     
     step_sizes = [60, 120, 240, 480, 960, 1920]
@@ -139,7 +138,7 @@ def analyze_benchmarks(step_sizes):
                 y_log=True, plot_size=[6,6])
 
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
-    
+    print(max_time)
     sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
                     termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                     integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
@@ -293,7 +292,6 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
         end_t = num_states[0][-1]
         
         integrator_eval_dict = {}
-        
         if end_t * 0.995 < bench_end_t < end_t * 1.005:
             # propagation ended close to the required point
             integrator_eval_dict["finalized_correctly"] = True
@@ -352,7 +350,6 @@ def create_integrator_analysis_plots(input_lst, regen_data=True):
         for inp in input_lst:
             if os.path.exists(inp[0] + "/integrator_eval_dict.dat"):
                 integrator_eval_dict = hf.create_dic_drom_json(inp[0] + "/integrator_eval_dict.dat")
-                
                 if integrator_eval_dict["finalized_correctly"]:
                     
                     if integrator_eval_dict["max_pos_error"] < 1e6:                
@@ -369,7 +366,7 @@ def create_integrator_analysis_plots(input_lst, regen_data=True):
                             "x_text": 10,
                             "y_text": 10,
                         })
-        
+        print(scatter_plot_data)
         np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/scatter_plot_data.npy", scatter_plot_data) 
         np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/label_points.npy", label_points) 
         
@@ -390,7 +387,7 @@ def create_integrator_analysis_plots(input_lst, regen_data=True):
 
 if __name__ == "__main__":
         
-    # gen_benchmarks(mp_nodes=6, rerun_sims=False)
+    # gen_benchmarks(mp_nodes=15, rerun_sims=True)
         
     # sys.exit()    
     
@@ -398,18 +395,18 @@ if __name__ == "__main__":
     
     # input_lst = get_integrator_investigation_input_list(True)
     # input_lst = get_integrator_investigation_input_list(True, True, False, False)
-    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
-    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell"])
+    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell"])
     
-    print(len(input_lst))
+    # print(len(input_lst))
         
-    # investigate_integrators(input_lst, 4)
+    # investigate_integrators(input_lst, 15)
     
-    # compare_integrators_with_mp(input_lst, 6)
+    # compare_integrators_with_mp(input_lst, 16) 
     
     # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
     
-    create_integrator_analysis_plots(input_lst, regen_data=False)
+    create_integrator_analysis_plots(input_lst, regen_data=True)
         
     # plot_benchmarks()
     
