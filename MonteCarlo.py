@@ -1,12 +1,13 @@
 import pdb
-
+import sys
+from pprint import pprint
 import numpy as np
 import os
 import multiprocessing as mp
 from time import time
 from scipy.stats.qmc import Sobol       # for Sobol's sampling method
 from scipy.stats import qmc
-
+import helper_functions as hf
 
 from tudatpy.io import save2txt
 from tudatpy.kernel import constants
@@ -19,14 +20,19 @@ from tudatpy.kernel.math import interpolators
 import tudatpy.util as util
 import simulation as sim
 
+def make_log(log_list, no_runs):
+    def logger(evaluation):
+        log_list.append(0)
+        print(f"\t {len(log_list)} / {no_runs} completed, {no_runs - len(log_list)} remaining \t\t", end="\r")
+    return logger
+
 
 def convert_mp_output_to_dict(tup, di):
     di = dict(tup)
     return di
 
 
-def monte_carlo_entry(current_param_dict, sim_idx, design_space_method):
-    savepath = f'./DesignSpace/{design_space_method}/sim{sim_idx}/'
+def monte_carlo_entry(current_param_dict, sim_idx, savepath):
     return sim.run_simulation(savepath,
                               6 * 31 * 24 * 60**2,
                               decision_variable_dic=current_param_dict,
@@ -44,9 +50,12 @@ if __name__ == '__main__':
     # design_space_method = 'monte_carlo_one_at_a_time'
     write_results_to_file = True
 
+    augustas = False
+    multiprocessing = True
+
     random_seed = 42
     cores_to_use = mp.cpu_count() - 2
-    current_dir = os.path.dirname(__file__)
+    output_path = hf.external_sim_data_dir + f'/DesignSpace/{design_space_method}/'
 
     decision_parameter_range = [[-0.5, -0.5, -0.5, 0], [0.5, 0.5, 0.5, 15*24*60*60]]
 
@@ -113,21 +122,52 @@ if __name__ == '__main__':
                                         't_impulse': decision_parameters[3]}
 
         parameters[sim_index] = decision_parameters_dict
+        
+    if augustas:
 
-    with mp.get_context("spawn").Pool(cores_to_use, maxtasksperchild=8) as pool:
-        inputs = []
+        with mp.get_context("spawn").Pool(cores_to_use, maxtasksperchild=8) as pool:
+            inputs = []
+            for run_idx, parameter_set in enumerate(list(parameters.values())):
+                inputs.append((parameter_set, run_idx, output_path + f"/iter_{run_idx}"))
+
+            sim_indices = []
+            outputs = pool.starmap(monte_carlo_entry, inputs)
+            
+            # Process outputs to dict form
+            objectives_and_constraints = {}
+            objectives_and_constraints = convert_mp_output_to_dict(outputs, objectives_and_constraints)    
+    
+    else:
+        input_lst = []
         for run_idx, parameter_set in enumerate(list(parameters.values())):
-            inputs.append((parameter_set, run_idx, design_space_method))
-
-        sim_indices = []
-        outputs = pool.starmap(monte_carlo_entry, inputs)
-        # Process outputs to dict form
+            input_lst.append([parameter_set, run_idx, output_path + f"/iter_{run_idx}"])
+        
         objectives_and_constraints = {}
-        objectives_and_constraints = convert_mp_output_to_dict(outputs, objectives_and_constraints)
+        async_results = []
+        log_list = []
+        if multiprocessing:    
+            pool = mp.Pool(cores_to_use, maxtasksperchild=40)
+            for inp in input_lst:
+                async_results.append(pool.apply_async(monte_carlo_entry, args=inp, callback=make_log(log_list, len(input_lst))))
+            pool.close()
+            pool.join() 
+            
+            results = []
+            for async_res in async_results:
+                results.append(async_res.get())
+            
+            objectives_and_constraints = convert_mp_output_to_dict(results, objectives_and_constraints)    
+                
+        else:
+            results = []
+            for i, inp in enumerate(input_lst):
+                results.append(monte_carlo_entry(*inp))
+                objectives_and_constraints = convert_mp_output_to_dict(results, objectives_and_constraints)    
+                print(f"{i} / {len(input_lst)} completed \t\t", end="\r")
 
     if write_results_to_file:
-        subdirectory = f'./DesignSpace/{design_space_method}/'
-        output_path = current_dir + subdirectory
-        print(output_path)
-        save2txt(parameters, 'parameter_values.dat', output_path)
+        parameters_for_json = {}
+        for key, value in parameters.items():
+            parameters_for_json[key] = hf.make_dic_safe_for_json(value)
+        hf.save_dict_to_json(parameters_for_json, output_path + "/parameter_values.dat")
         save2txt(objectives_and_constraints, 'objectives_constraints.dat', output_path)

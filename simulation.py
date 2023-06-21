@@ -217,12 +217,18 @@ def run_simulation(
     
     dep_vars_id_dic = hf.json_safe_dic(dynamics_simulator.propagation_results.dependent_variable_ids)
     safe_decision_variable_dic = hf.json_safe_dic(decision_variable_dic)
-            
+    
+    integrator_settings_dic_for_save = integrator_settings_dic.copy()
+    
+    integrator_settings_dic_for_save["integrator_coeff_set"] = str(integrator_settings_dic_for_save["integrator_coeff_set"])
+    integrator_settings_dic_for_save["propagator"] = str(integrator_settings_dic_for_save["propagator"])
+    
     propagation_info_dic = {
         "CPU_time": first_cpu_time + second_cpu_time,
         "f_evals": first_f_evals + second_f_evals,
         "decision_variable_dic": safe_decision_variable_dic,
-        "dependent_variable_ids": dep_vars_id_dic
+        "dependent_variable_ids": dep_vars_id_dic,
+        "integrator_info": integrator_settings_dic_for_save
     }        
     if dynamics_simulator_2 is None:
         stacked_state_history = dynamics_simulator.state_history

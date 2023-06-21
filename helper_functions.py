@@ -29,6 +29,7 @@ root_dir = os.path.dirname(__file__)
 report_dir = remove_folder_from_path(os.path.dirname(__file__), 2) + "/overleaf"
 sim_data_dir = os.path.dirname(__file__) + "/SimulationData"
 plots_dir = os.path.dirname(__file__) + "/SimulationData/plots/"
+external_sim_data_dir = remove_folder_from_path(os.path.dirname(__file__), 1) + "/SimulationData"
 
 
 def plot_arrays(
@@ -464,7 +465,7 @@ def save_dependent_variable_info(dictionary, filename):
             # Write each item to a new row in the text file
             file.write(f"{key}: {value}\n")   
 
-def json_safe_dic(dictionary):
+def make_dic_safe_for_json(dictionary):
     safe_dic = {}
     # Open the text file in write mode
     for key, value in dictionary.items():
