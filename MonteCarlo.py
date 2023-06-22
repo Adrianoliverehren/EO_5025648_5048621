@@ -101,8 +101,7 @@ if __name__ == '__main__':
 
             dv = [decision_parameters[0], decision_parameters[1], decision_parameters[2]]
             # Transform to input dictionary
-            decision_parameters_dict = {'dv_mag': np.linalg.norm(dv),
-                                        'dv_unit_vect': dv/np.linalg.norm(dv),
+            decision_parameters_dict = {'dv': dv,
                                         't_impulse': decision_parameters[3]}
 
         else:
@@ -112,8 +111,7 @@ if __name__ == '__main__':
             # Transform to input dictionary
             dv = [decision_parameters[0], decision_parameters[1], decision_parameters[2]]
 
-            decision_parameters_dict = {'dv_mag': np.linalg.norm(dv),
-                                        'dv_unit_vect': dv/np.linalg.norm(dv),
+            decision_parameters_dict = {'dv': dv,
                                         't_impulse': decision_parameters[3]}
 
         parameters[sim_index] = decision_parameters_dict
