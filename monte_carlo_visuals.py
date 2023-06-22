@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 def create_genera_info_plots(
     data_path = hf.external_sim_data_dir + "/DesignSpace/monte_carlo",
-    no_sims = 2**14
+    no_sims = 2**13
 ):
 
 
@@ -43,18 +43,38 @@ def create_genera_info_plots(
             unfeasible_ids.append(i)
         i += 1
         
+    t_survive = objective_constraints[1] / (24*60**2)
     
-    hf.plot_arrays(dv_r_dir, [objective_constraints[1] / (24*60**2)], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
-                    y_label="Survival time [days]", x_label="dv_r_dir")
+    t_survive_feasible = np.delete(t_survive, unfeasible_ids)
+    t_survive_unfeasible = np.take(t_survive, unfeasible_ids)
     
-    hf.plot_arrays(dv_s_dir, [objective_constraints[1] / (24*60**2)], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
-                    y_label="Survival time [days]", x_label="dv_s_dir")
+    dv_r_dir_feasible = np.delete(dv_r_dir, unfeasible_ids)
+    dv_r_dir_unfeasible = np.take(dv_r_dir, unfeasible_ids)
     
-    hf.plot_arrays(dv_w_dir, [objective_constraints[1] / (24*60**2)], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
-                    y_label="Survival time [days]", x_label="dv_w_dir")
+    dv_s_dir_feasible = np.delete(dv_s_dir, unfeasible_ids)
+    dv_s_dir_unfeasible = np.take(dv_s_dir, unfeasible_ids)
     
-    hf.plot_arrays(t_impulse / (24*60**2), [objective_constraints[1] / (24*60**2)], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
-                    y_label="Survival time [days]", x_label="t_impulse")
+    dv_w_dir_feasible = np.delete(dv_w_dir, unfeasible_ids)
+    dv_w_dir_unfeasible = np.take(dv_w_dir, unfeasible_ids)
+    
+    t_impulse_feasible = np.delete(t_impulse, unfeasible_ids)
+    t_impulse_unfeasible = np.take(t_impulse, unfeasible_ids)
+    
+    # x_unwanted = np.take(x_array, filter_ids)
+    # x_array = np.delete(x_array, filter_ids)
+    
+    hf.plot_arrays([dv_r_dir_unfeasible, dv_r_dir_feasible], [t_survive_unfeasible, t_survive_feasible], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_r_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([dv_s_dir_unfeasible, dv_s_dir_feasible], [t_survive_unfeasible, t_survive_feasible], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_s_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([dv_w_dir_unfeasible, dv_w_dir_feasible], [t_survive_unfeasible, t_survive_feasible], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_w_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([t_impulse_unfeasible, t_impulse_feasible], [t_survive_unfeasible, t_survive_feasible], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="t_impulse", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
     
     
     

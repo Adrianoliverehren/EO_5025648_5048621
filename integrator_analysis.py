@@ -52,9 +52,8 @@ propagators = {
     "mee": propagation_setup.propagator.gauss_modified_equinoctial, 
     "usm_rod": propagation_setup.propagator.unified_state_model_modified_rodrigues_parameters}
 
-sample_decision_variable_dic = {}
-sample_decision_variable_dic["dv_mag"] = -.1        
-sample_decision_variable_dic["dv_unit_vect"] = np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
+sample_decision_variable_dic = {}      
+sample_decision_variable_dic["dv"] = -.1  * np.array([5,2,3]) / np.linalg.norm(np.array([5,2,3]))
 sample_decision_variable_dic['t_impulse'] = 31 * 24 * 60**2
 
 benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_56/dt=60"
@@ -68,7 +67,7 @@ def make_log(i, results, len_data):
         del evaluation
     return logger
 
-def gen_benchmarks(mp_nodes=None, rerun_sims=True):
+def gen_benchmarks(mp_nodes=None, rerun_sims=True, path_to_save_plots=hf.root_dir + "/Figures/benchmarks"):
         
     input_lst = []
     
@@ -101,9 +100,9 @@ def gen_benchmarks(mp_nodes=None, rerun_sims=True):
     if rerun_sims:
         investigate_integrators(input_lst, mp_nodes)
     
-    analyze_benchmarks(step_sizes)
+    analyze_benchmarks(step_sizes, path_to_save_plots)
     
-def analyze_benchmarks(step_sizes):
+def analyze_benchmarks(step_sizes, path_to_save_plots):
     
     time_in_days_lst = []
     x_error_lst = []
@@ -134,11 +133,10 @@ def analyze_benchmarks(step_sizes):
         legend.append(f"dt={int(step_size)}")
         
     hf.plot_arrays(time_in_days_lst, pos_error_lst, keep_in_memory=False, x_label="Time [days]",
-                y_label="pos error [m]", legend=legend, path_to_save=hf.root_dir + "/Figures/benchmarks/error_vs_time.png",
-                y_log=True, plot_size=[6,6])
+                y_label="Position error [m]", legend=legend, path_to_save=path_to_save_plots + "/benchmark_error_vs_time.pdf",
+                y_log=True, plot_size=[4,4])
 
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
-    print(max_time)
     sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
                     termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                     integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
@@ -339,26 +337,32 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             
         hf.save_dict_to_json(integrator_eval_dict, folder_path + "/integrator_eval_dict.dat")
         
-def create_integrator_analysis_plots(input_lst, regen_data=True):
+def create_integrator_analysis_plots(input_lst, path_to_save_plots, regen_data=True, show_all_integrators=False):
         
     scatter_plot_data = [[],[]]
     
     label_points = []
     
     if regen_data:
-    
+        k = 0
         for inp in input_lst:
             if os.path.exists(inp[0] + "/integrator_eval_dict.dat"):
                 integrator_eval_dict = hf.create_dic_drom_json(inp[0] + "/integrator_eval_dict.dat")
+                
                 if integrator_eval_dict["finalized_correctly"]:
+                    propagation_info_dic = hf.create_dic_drom_json(inp[0] + "/propagation_info_dic.dat")
                     
-                    if integrator_eval_dict["max_pos_error"] < 1e6:                
+                    if integrator_eval_dict["max_pos_error"] < 1e6 and propagation_info_dic["f_evals"] < 500000 and integrator_eval_dict["max_pos_error"] > 10:                
                         scatter_plot_data[1].append(integrator_eval_dict["max_pos_error"])
-                        propagation_info_dic = hf.create_dic_drom_json(inp[0] + "/propagation_info_dic.dat")
                         scatter_plot_data[0].append(propagation_info_dic["f_evals"])
                         
                         integrator_name = remove_path_prefix(inp[0], hf.sim_data_dir + "/integrator_analysis")
                         
+                        if integrator_name == "cowell\\multistage\\variable\\rkdp_87\\atol=1e-12_rtol=1e-10":
+                            
+                            selected_id = k
+                        
+                        k+=1
                         label_points.append({
                             "text": integrator_name,
                             "x": propagation_info_dic["f_evals"],
@@ -366,7 +370,6 @@ def create_integrator_analysis_plots(input_lst, regen_data=True):
                             "x_text": 10,
                             "y_text": 10,
                         })
-        print(scatter_plot_data)
         np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/scatter_plot_data.npy", scatter_plot_data) 
         np.save(hf.sim_data_dir + "/integrator_analysis/plotting_data/label_points.npy", label_points) 
         
@@ -374,20 +377,55 @@ def create_integrator_analysis_plots(input_lst, regen_data=True):
         scatter_plot_data = np.load(hf.sim_data_dir + "/integrator_analysis/plotting_data/scatter_plot_data.npy", allow_pickle=True)
         label_points = np.load(hf.sim_data_dir + "/integrator_analysis/plotting_data/label_points.npy", allow_pickle=True)
     
-    # print(scatter_plot_data)
     
-    # sys.exit()
+    plt.figure(figsize=[4,4])
     
-    hf.plot_arrays(scatter_plot_data[0], [scatter_plot_data[1]], linewiths=[0]*len(scatter_plot_data[0]),
-                   y_log=True, y_label="Pos error [m]", x_label="f-evals [-]", x_log=True,
-                   label_points=label_points, keep_in_memory=True, markings=True)
+    plt.scatter(scatter_plot_data[0], scatter_plot_data[1], marker=".")
+    plt.scatter(scatter_plot_data[0][selected_id], scatter_plot_data[1][selected_id], color="tab:red", marker="o")
     
-    plt.show()    
+    plt.xlabel("Function evaluations [-]")
+    plt.ylabel("Position error [m]")
+    plt.yscale("log")
     
+    plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
+    
+    plt.grid()
+    
+    plt.tight_layout()
+    
+    plt.savefig(path_to_save_plots + "/integrators_error_vs_fevals.pdf", bbox_inches='tight')
+    
+    plt.close()
+    
+    if show_all_integrators:
+        hf.plot_arrays(scatter_plot_data[0], [scatter_plot_data[1]], linewiths=[0]*len(scatter_plot_data[0]),
+                    y_log=True, y_label="Pos error [m]", x_label="f-evals [-]", 
+                    label_points=label_points, keep_in_memory=True, markings=True)
+        plt.show()   
+
+
+def plot_error_for_single_integrator(integrator_path, plot_save_path):
+    
+    error_states = np.genfromtxt(integrator_path + "/state_errors.dat").T   
+    
+    eval_array_days = error_states[0] / (24*60**2)
+    
+    pos_error = np.linalg.norm(error_states[1:4], axis=0)
+    
+    hf.plot_arrays(
+        eval_array_days, [pos_error], x_label="Time [days]", y_label="Position error [m]", 
+        path_to_save=plot_save_path,
+        y_log=True, plot_size=[4,4])
+    
+    
+    pass
+
 
 if __name__ == "__main__":
         
-    # gen_benchmarks(mp_nodes=15, rerun_sims=True)
+    # print(hf.report_dir )
+        
+    # gen_benchmarks(mp_nodes=15, rerun_sims=False, path_to_save_plots=hf.report_dir + "/Figures/Ch2")
         
     # sys.exit()    
     
@@ -395,7 +433,7 @@ if __name__ == "__main__":
     
     # input_lst = get_integrator_investigation_input_list(True)
     # input_lst = get_integrator_investigation_input_list(True, True, False, False)
-    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
     # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell"])
     
     # print(len(input_lst))
@@ -404,11 +442,16 @@ if __name__ == "__main__":
     
     # compare_integrators_with_mp(input_lst, 16) 
     
-    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
     
-    create_integrator_analysis_plots(input_lst, regen_data=True)
+    # create_integrator_analysis_plots(input_lst, hf.report_dir + "/Figures/Ch2", regen_data=True, show_all_integrators=True)
+    
+    plot_error_for_single_integrator(hf.sim_data_dir + "/integrator_analysis/cowell\\multistage\\variable\\rkdp_87\\atol=1e-12_rtol=1e-10", 
+                                     hf.report_dir + "/Figures/Ch2/cowell_rkdp_87_atol=1e-12_rtol=1e-10_error_vs_tome.pdf")
+    plot_error_for_single_integrator(hf.sim_data_dir + "/integrator_analysis/mee\\multistage\\variable\\rkf_45\\atol=1e-12_rtol=1e-12", 
+                                     hf.report_dir + "/Figures/Ch2/mee_rkf_45_atol=1e-12_rtol=1e-12_error_vs_tome.pdf")
         
-    # plot_benchmarks()
+    # analyze_benchmarks()
     
     # gen_benchmarks()
     
