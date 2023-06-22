@@ -255,7 +255,7 @@ if __name__ == "__main__":
     
     decision_variable_dic["dv_mag"] = -.1        
     decision_variable_dic["dv_unit_vect"] = np.array([0, 1, 0])
-    decision_variable_dic['t_impulse'] = 0.5 * 24* 60**2
+    decision_variable_dic['t_impulse'] = 0.5 * 24 * 60**2
     print(decision_variable_dic)
     run_simulation("test2", 2 * 31 * 24 * 60**2)
 

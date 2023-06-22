@@ -490,14 +490,14 @@ def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked
 
 
 def constraint():
-    return 0.00503
+    return 7.589381 * (10**(-4))
 
 
 def calculate_obj(dependent_var_history, sim_idx):
     for t in dependent_var_history.keys():
         current_dep_vars = dependent_var_history[t]
-        if current_dep_vars[5] > constraint() or current_dep_vars[6] > constraint() or \
-                current_dep_vars[5] < -constraint() or current_dep_vars[6] < -constraint():
+        angle_radius_thing = np.sqrt(current_dep_vars[5]**2 + current_dep_vars[6]**2)
+        if angle_radius_thing > constraint():
             return t
 
     # If condition was never violated
