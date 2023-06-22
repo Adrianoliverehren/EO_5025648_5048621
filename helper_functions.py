@@ -492,6 +492,10 @@ def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked
 def constraint():
     return 7.589381 * (10**(-4)) # 32 / semi-major axis
 
+def make_ALL_folders_for_path(filepath):
+    path = pathlib.Path(filepath)
+    path.parent.mkdir(parents=True, exist_ok=True)   
+    
 
 def calculate_obj(dependent_var_history, sim_idx="n/a"):
     for t in dependent_var_history.keys():
@@ -537,3 +541,6 @@ def period_change(state_history, t_impulse, dependent_var_history):
     return abs(T_after - T_initial) - abs(T_prior - T_initial)        # max(abs(dT_arr))
 
 
+if __name__ == "__main__":
+    
+    print(np.rad2deg(constraint()))
