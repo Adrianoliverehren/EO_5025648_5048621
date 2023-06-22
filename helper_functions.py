@@ -493,7 +493,7 @@ def constraint():
     return 7.589381 * (10**(-4)) # 32 / semi-major axis
 
 
-def calculate_obj(dependent_var_history, sim_idx):
+def calculate_obj(dependent_var_history, sim_idx="n/a"):
     for t in dependent_var_history.keys():
         current_dep_vars = dependent_var_history[t]
         angle_radius_thing = np.sqrt(current_dep_vars[5]**2 + current_dep_vars[6]**2)
@@ -505,7 +505,7 @@ def calculate_obj(dependent_var_history, sim_idx):
     return list(dependent_var_history.keys())[-1]
 
 
-def period_change(state_history, t_impulse):
+def period_change(state_history, t_impulse, dependent_var_history):
     t_arr = np.array(list(state_history.keys()))
     state_history_arr = np.array(list(state_history.values()))
 
@@ -514,7 +514,7 @@ def period_change(state_history, t_impulse):
     kepler_state_initial = cartesian_to_keplerian(state_history_arr[0], mu)
     T_initial = 2 * np.pi * (kepler_state_initial[0]**3 / mu)**0.5
 
-    if t_impulse > t_arr[-1]:
+    if t_impulse > calculate_obj(dependent_var_history):
         return np.inf
     # Determine T prior to impulse
     prior_index = np.max(np.argwhere(t_arr < t_impulse))
