@@ -204,7 +204,7 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
         y_unwanted = np.take(y_array, filter_ids)
         z_unwanted = np.take(z_array, filter_ids)
         
-        plt.scatter(x_unwanted, y_unwanted, c="gray", marker=".")
+        # plt.scatter(x_unwanted, y_unwanted, c="gray", marker=".")
         
         x_array = np.delete(x_array, filter_ids)
         y_array = np.delete(y_array, filter_ids)

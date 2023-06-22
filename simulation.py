@@ -92,7 +92,8 @@ def run_simulation(
     termination_longitude=np.deg2rad(0.32),
     integrator_settings_dic=default_integrator_settings_dic,
     max_cpu_time=30,
-    sim_idx=0
+    sim_idx=0,
+    run_for_mc=True,
 ):
     empty_body_settings = get_empty_body_settings()
     
@@ -238,11 +239,14 @@ def run_simulation(
         stacked_dep_vars_history = dynamics_simulator.dependent_variable_history | \
             dynamics_simulator_2.dependent_variable_history
 
-    hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
-    hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
+    if path_to_save_data:
 
-    return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
-                     hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'])]
+        hf.save_dict_to_json(propagation_info_dic, path_to_save_data + "/propagation_info_dic.dat")
+        hf.save_dynamics_simulator_to_files(path_to_save_data, stacked_state_history, stacked_dep_vars_history)
+    
+    if run_for_mc:
+        return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
+                        hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'])]
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ if __name__ == '__main__':
         # THE SAME sequence of numbers between 0-1 used to scale each parameter separately
         fractional_variation_sample = sobol_sequence.random_base2(m)
     else:
-        number_of_simulations = 2**12
+        number_of_simulations = 2**14
         np.random.seed(random_seed)  # Slightly outdated way of doing this, but works
         print('\n Random Seed :', random_seed, '\n')
 
