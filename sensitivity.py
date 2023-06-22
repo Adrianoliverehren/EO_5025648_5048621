@@ -16,7 +16,8 @@ def log_sensitivity(x, f, dxdf):
 if __name__ == '__main__':
     # Read objective values from Monte Carlo
     # t_max_arr = np.genfromtxt('./DesignSpace/monte_carlo/objectives_constraints.dat')[:, 1]
-    t_max_arr = np.genfromtxt(hf.external_sim_data_dir + "/DesignSpace/monte_carlo/objectives_constraints.dat")[:, 1]
+    objective_constraints = np.genfromtxt(hf.external_sim_data_dir + "/DesignSpace/monte_carlo/objectives_constraints.dat").T
+    t_max_arr = objective_constraints[1]
     # Transform to days
     t_max_arr = t_max_arr / (24 * 60 * 60)
 
@@ -31,11 +32,11 @@ if __name__ == '__main__':
         full_dir = hf.external_sim_data_dir + '/DesignSpace/monte_carlo/' + sim_dir + '/'
         if sim_dir != 'objectives_constraints.dat' and sim_dir != 'parameter_values.dat':
             decision_var_dict = hf.create_dic_drom_json(full_dir + 'propagation_info_dic.dat')['decision_variable_dic']
-
-            v1_arr.append(decision_var_dict['dv'][0])
-            v2_arr.append(decision_var_dict['dv'][1])
-            v3_arr.append(decision_var_dict['dv'][2])
-            t_impulse_arr.append(decision_var_dict['t_impulse'])
+            if objective_constraints[2][i] <= 0:
+                v1_arr.append(decision_var_dict['dv'][0])
+                v2_arr.append(decision_var_dict['dv'][1])
+                v3_arr.append(decision_var_dict['dv'][2])
+                t_impulse_arr.append(decision_var_dict['t_impulse'])
     # Transform time to days
     t_impulse_arr = np.array(t_impulse_arr) / (24 * 60 * 60)
 
