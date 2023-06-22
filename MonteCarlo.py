@@ -52,7 +52,7 @@ if __name__ == '__main__':
     cores_to_use = mp.cpu_count() - 2
     output_path = hf.external_sim_data_dir + f'/DesignSpace/{design_space_method}/'
 
-    decision_parameter_range = [[-0.5, -0.5, -0.5, 0], [0.5, 0.5, 0.5, 15*24*60*60]]
+    decision_parameter_range = [[-0.5, -0.5, -0.5, 0], [0.5, 0.5, 0.5, 2*24*60*60]]
 
     if design_space_method == 'monte_carlo_one_at_a_time':
         number_of_simulations_per_parameter = 2**7
