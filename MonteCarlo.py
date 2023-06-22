@@ -52,7 +52,7 @@ if __name__ == '__main__':
     cores_to_use = mp.cpu_count() - 2
     output_path = hf.external_sim_data_dir + f'/DesignSpace/{design_space_method}/'
 
-    decision_parameter_range = [[-0.5, -0.5, -0.5, 0], [0.5, 0.5, 0.5, 2*24*60*60]]
+    decision_parameter_range = [[-2, -2, -2, 0], [2, 2, 2, 2*24*60*60]]
 
     if design_space_method == 'monte_carlo_one_at_a_time':
         number_of_simulations_per_parameter = 2**7
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         # THE SAME sequence of numbers between 0-1 used to scale each parameter separately
         fractional_variation_sample = sobol_sequence.random_base2(m)
     else:
-        number_of_simulations = 2**14
+        number_of_simulations = 2**13
         np.random.seed(random_seed)  # Slightly outdated way of doing this, but works
         print('\n Random Seed :', random_seed, '\n')
 
