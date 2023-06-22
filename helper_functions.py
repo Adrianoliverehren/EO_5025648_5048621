@@ -26,17 +26,19 @@ def remove_folder_from_path(path : str, no_to_remove=1):
     return path
 
 root_dir = os.path.dirname(__file__)
-report_dir = remove_folder_from_path(os.path.dirname(__file__), 2) + "/overleaf"
+report_dir = remove_folder_from_path(os.path.dirname(__file__), 1) + "/overleaf"
 sim_data_dir = os.path.dirname(__file__) + "/SimulationData"
 plots_dir = os.path.dirname(__file__) + "/SimulationData/plots/"
 external_sim_data_dir = remove_folder_from_path(os.path.dirname(__file__), 1) + "/SimulationData"
+
 
 
 def plot_arrays(
     x_arrays, y_arrays, path_to_save=False, title=None, x_label=None, y_label=None, scale_factor=None,
     legend=None, grid=True, x_log=False, linestyles=None, linewiths=None, plot_size=[4,4], colors=None, x_lim=None, legend_pos=None,
     force_xticks=False, force_sci_notation=False, custom_legend_entries=None, custom_markings=None, markers=None, marker_colors=None,
-    markerfacecolors=None, marker_sizes=None, keep_in_memory=False, y_log=False, markings=None, additional_save_path=None, **kwargs):
+    markerfacecolors=None, marker_sizes=None, keep_in_memory=False, y_log=False, markings=None, additional_save_path=None, 
+    alphas=None, **kwargs):
     
     if type(x_arrays[0]) not in [list, np.ndarray]:
         x_arrays = [x_arrays] * len(y_arrays)
@@ -69,7 +71,11 @@ def plot_arrays(
         if colors:
             if len(colors) == 1:
                 colors = colors * len(y_arrays)
-            plt.setp(line_plot, color=colors[i])
+            plt.setp(line_plot, color=colors[i])           
+        if alphas:
+            if len(alphas) == 1:
+                alphas = alphas * len(y_arrays)
+            plt.setp(line_plot, alpha=alphas[i])
         if markings:
             if not type(markings) == list:
                 markings = ["."] * len(y_arrays)
