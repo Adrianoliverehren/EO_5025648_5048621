@@ -20,6 +20,8 @@ from tudatpy.kernel.math import interpolators
 import tudatpy.util as util
 import simulation as sim
 
+feasible_decision_variable_dic = {'dv': np.array([0.0605, -0.025, 0.317]), 't_impulse': 1.1384*24*60**2}
+
 def make_log(log_list, no_runs):
     def logger(evaluation):
         log_list.append(0)
@@ -41,8 +43,8 @@ def monte_carlo_entry(current_param_dict, sim_idx, savepath):
 
 """ WARNING, RUNNING THIS FILE WILL GENERATE ~10GB OF DATA"""
 if __name__ == '__main__':
-    design_space_method = 'monte_carlo'
-    # design_space_method = 'monte_carlo_one_at_a_time'
+    # design_space_method = 'monte_carlo'
+    design_space_method = 'monte_carlo_one_at_a_time'
     write_results_to_file = True
 
     augustas = False
@@ -57,10 +59,9 @@ if __name__ == '__main__':
     if design_space_method == 'monte_carlo_one_at_a_time':
         number_of_simulations_per_parameter = 2**7
         number_of_simulations = 4 * number_of_simulations_per_parameter
-        nominal_parameters = list(sim.default_decision_variable_dic.values())
         # Don't question this, it works
-        nominal_parameters = [nominal_parameters[0], nominal_parameters[1][0], nominal_parameters[1][1],
-                              nominal_parameters[1][2], nominal_parameters[2]]
+        nominal_parameters = [feasible_decision_variable_dic["dv"][0], feasible_decision_variable_dic["dv"][1],
+                              feasible_decision_variable_dic["dv"][2], feasible_decision_variable_dic["t_impulse"]]
         np.random.seed(random_seed)  # Slightly outdated way of doing this, but works
         print('\n Random Seed :', random_seed, '\n')
 
