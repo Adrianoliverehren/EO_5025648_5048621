@@ -60,7 +60,7 @@ default_dep_vars = [
             body_undergoing_acceleration="SUPER_SAT_37k",
             body_exerting_acceleration="Moon"),
 ]
-default_decision_variable_dic = {'dv_mag': 0, 'dv_unit_vect': np.array([1, 0, 0]), 't_impulse': 0.5*24*60**2}
+default_decision_variable_dic = {'dv': np.array([0, 0, 0]), 't_impulse': 0.5*24*60**2}
 
 
 def get_empty_body_settings(
@@ -148,7 +148,7 @@ def run_simulation(
     )
     
     if decision_variable_dic['t_impulse'] == 0:
-        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        rsw_delta_v = decision_variable_dic["dv"] * decision_variable_dic["dv_unit_vect"]
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
         delta_v_cartesian = rotation_matrix @ rsw_delta_v
@@ -177,7 +177,7 @@ def run_simulation(
         # Apply velocity impulse
         current_epoch = list(dynamics_simulator.state_history.keys())[-1]
         current_state = dynamics_simulator.state_history[current_epoch].copy()
-        rsw_delta_v = decision_variable_dic["dv_mag"] * decision_variable_dic["dv_unit_vect"]
+        rsw_delta_v = decision_variable_dic["dv"]
 
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(current_state)
