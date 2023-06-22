@@ -246,7 +246,7 @@ def run_simulation(
     
     if run_for_mc:
         return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
-                        hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'])]
+                        hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'], stacked_dep_vars_history)]
 
 
 if __name__ == "__main__":
