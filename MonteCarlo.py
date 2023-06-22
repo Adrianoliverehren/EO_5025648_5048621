@@ -36,11 +36,6 @@ def monte_carlo_entry(current_param_dict, sim_idx, savepath):
     return sim.run_simulation(savepath,
                               6 * 31 * 24 * 60**2,
                               decision_variable_dic=current_param_dict,
-                              simulation_start_epoch=0,
-                              termination_latitude=np.deg2rad(0.32),
-                              termination_longitude=np.deg2rad(0.32),
-                              integrator_settings_dic=sim.default_integrator_settings_dic,
-                              max_cpu_time=30,
                               sim_idx=sim_idx)
 
 

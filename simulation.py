@@ -88,8 +88,8 @@ def run_simulation(
     maximum_duration,
     decision_variable_dic=default_decision_variable_dic,
     simulation_start_epoch=0,
-    termination_latitude=np.deg2rad(0.32),
-    termination_longitude=np.deg2rad(0.32),
+    termination_latitude=hf.constraint() * 1.5,
+    termination_longitude=hf.constraint() * 1.5,
     integrator_settings_dic=default_integrator_settings_dic,
     max_cpu_time=30,
     sim_idx=0,
@@ -216,8 +216,8 @@ def run_simulation(
         second_cpu_time = 0
         second_f_evals = 0
     
-    dep_vars_id_dic = hf.json_safe_dic(dynamics_simulator.propagation_results.dependent_variable_ids)
-    safe_decision_variable_dic = hf.json_safe_dic(decision_variable_dic)
+    dep_vars_id_dic = hf.make_dic_safe_for_json(dynamics_simulator.propagation_results.dependent_variable_ids)
+    safe_decision_variable_dic = hf.make_dic_safe_for_json(decision_variable_dic)
     
     integrator_settings_dic_for_save = integrator_settings_dic.copy()
     

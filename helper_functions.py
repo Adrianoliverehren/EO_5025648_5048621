@@ -490,7 +490,7 @@ def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked
 
 
 def constraint():
-    return 7.589381 * (10**(-4))
+    return 7.589381 * (10**(-4)) # 32 / semi-major axis
 
 
 def calculate_obj(dependent_var_history, sim_idx):
