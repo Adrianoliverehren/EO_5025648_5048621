@@ -104,11 +104,6 @@ def optimize_w_scipy(alg_name):
 
             all_pop_fitness_history.append(current_objective_history.true_fitness_history)
             all_pop_constraint_history.append(current_objective_history.true_constraint_history)
-            print(sys.getsizeof(result_obj_lst)/10**6)
-            print(sys.getsizeof(all_pop_fitness_history) / 10 ** 6)
-            print(sys.getsizeof(all_pop_constraint_history) / 10 ** 6)
-            print(sys.getsizeof(current_objective_history) / 10 ** 6)
-            print(sys.getsizeof(minimize) / 10 ** 6)
 
     return result_obj_lst, all_pop_fitness_history, all_pop_constraint_history
 

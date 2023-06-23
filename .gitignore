@@ -1,3 +1,4 @@
 __pycache__/
 *.dat
 Figures/integrator_analysis/
+*.pkl
