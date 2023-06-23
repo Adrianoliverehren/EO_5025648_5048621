@@ -282,6 +282,77 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
     if keep_in_memory == False:
         plt.close()
 
+
+def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, x_label=None, y_label=None, z_label=None,
+    grid=True, keep_in_memory=False, legend=None):
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    
+    c_array = np.linspace(0, 2*np.pi, 200)
+    
+    x_lim = np.cos(c_array) * constraint() * np.rad2deg(1)
+    y_lim = np.sin(c_array) * constraint() * np.rad2deg(1)
+
+    # Data for a three-dimensional line
+    
+    
+    big_time_list = []
+    
+    for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
+        
+        big_time_list += list(t)        
+        lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
+        ax.plot3D(lat, long, t, c)
+    
+    ax.plot3D(x_lim, y_lim, [time_array[0][0]]*len(x_lim), 'red')
+    
+    ax.view_init(elev=20., azim=-135.)
+    
+    # maxmax = max(np.max(np.abs(lat_arrays)), np.max(np.abs(long_arrays)))*1.1* np.rad2deg(1)
+    
+    long_list = []
+    
+    for lat, long in zip(lat_arrays, long_arrays):
+        long_list += list(lat)
+        long_list += list(long)
+    
+    maxmax = max(np.abs(long_list))*1.1* np.rad2deg(1)
+    minmin = -maxmax
+    
+    
+    max_time = max(big_time_list)
+    min_time = min(big_time_list)
+    
+    # lim lat /lon lines along z axis
+    ax.plot3D([constraint() * np.rad2deg(1)]*2, [maxmax]*2, [min_time, max_time], 'red', alpha=0.4)
+    ax.plot3D([-constraint() * np.rad2deg(1)]*2, [maxmax]*2, [min_time, max_time], 'red', alpha=0.4)
+    
+    ax.plot3D([maxmax]*2, [constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
+    ax.plot3D([maxmax]*2, [-constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
+    for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
+        
+        lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
+    
+        ax.plot3D(lat, [maxmax]*len(lat), t, c, alpha=0.4)
+        ax.plot3D([maxmax]*len(lat), long, t, c, alpha=0.4)
+    
+    ax.set_xlabel("Latitude [deg]")
+    ax.set_ylabel("Longitude [deg]")
+    ax.set_zlabel("Survival time [days]")
+    
+    ax.set_xlim(xmin=minmin, xmax=maxmax)
+    ax.set_ylim(ymin=minmin, ymax=maxmax)
+    
+    
+    plt.tight_layout()
+
+
+    pass
+
+
+
+
 def plot_heatmap_scatter_multi_decision_vars(x_arrays, y_arrays, z_arrays, markers, path_to_save=False, title=None, x_label=None, y_label=None,
     grid=True, x_log=False, y_log=False, plot_size=[4,4], additional_save_path=None, keep_in_memory=False, 
     normalize_colourbar=None, z_label=None, filter_ids=None, legend=None, marker_sizes=None,**kwargs):
@@ -446,7 +517,6 @@ def plot_lat_long(longitude, latitude, linewiths=None, colors=None, keep_in_memo
     
     pass
 
-
 def create_dictionary_from_savefile(filepath):
     
     data = np.genfromtxt(filepath)
@@ -457,12 +527,10 @@ def create_dictionary_from_savefile(filepath):
 
     return dic
 
-
 def create_dic_drom_json(filepath):
     with open(filepath) as json_file:
         return json.load(json_file)
     
-
 def save_dependent_variable_info(dictionary, filename):
     # Open the text file in write mode
     with open(filename, "w") as file:
@@ -481,7 +549,6 @@ def make_dic_safe_for_json(dictionary):
         safe_dic[str(key)] = value
     return safe_dic
     
-
 def save_dict_to_json(data, filename):
     path = pathlib.Path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -489,11 +556,9 @@ def save_dict_to_json(data, filename):
     with open(filename, 'w') as file:
         json.dump(data, file, indent=4, separators=(',', ': '))
         
-
 def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked_dep_vars_history):
         save2txt(stacked_state_history, 'state_history.dat', output_path)
         save2txt(stacked_dep_vars_history, 'dependent_variable_history.dat', output_path)
-
 
 def constraint():
     return 7.589381 * (10**(-4)) # 32 / semi-major axis
@@ -502,7 +567,6 @@ def make_ALL_folders_for_path(filepath):
     path = pathlib.Path(filepath)
     path.parent.mkdir(parents=True, exist_ok=True)   
     
-
 def calculate_obj(dependent_var_history, sim_idx="n/a"):
     for t in dependent_var_history.keys():
         current_dep_vars = dependent_var_history[t]
@@ -549,4 +613,29 @@ def period_change(state_history, t_impulse, dependent_var_history):
 
 if __name__ == "__main__":
     
-    print(np.rad2deg(constraint()))
+    
+    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_506\dependent_variable_history.dat").T
+    
+    lat1 = dep_vars[6]
+    long1 = dep_vars[7]
+    time1 = dep_vars[0] / (24*60**2)
+    
+    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_21\dependent_variable_history.dat").T
+    
+    lat2 = dep_vars[6]
+    long2 = dep_vars[7]
+    time2 = dep_vars[0] / (24*60**2)
+    
+    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_220\dependent_variable_history.dat").T
+    
+    lat3 = dep_vars[6]
+    long3 = dep_vars[7]
+    time3 = dep_vars[0] / (24*60**2)
+    
+    
+    create_lat_long_circle_plot([lat1, lat2, lat3], [long1, long2, long3], [time1, time2, time3], colours=["tab:green", "tab:blue", "tab:orange"], x_label=None, y_label=None, z_label=None,
+    grid=True, keep_in_memory=False, legend=None)
+    
+    plt.show()
+    
+    # print(np.rad2deg(constraint()))
