@@ -60,12 +60,14 @@ benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_56/dt=60
 
 max_time = 30
 
+
 def make_log(i, results, len_data):
     def logger(evaluation):
         results.append(evaluation)
         print(f"{len(results)} / {len_data} completed, {len_data - len(results)} remaining")
         del evaluation
     return logger
+
 
 def gen_benchmarks(mp_nodes=None, rerun_sims=True, path_to_save_plots=hf.root_dir + "/Figures/benchmarks"):
         

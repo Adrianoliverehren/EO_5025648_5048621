@@ -148,7 +148,7 @@ def run_simulation(
     )
     
     if decision_variable_dic['t_impulse'] == 0:
-        rsw_delta_v = decision_variable_dic["dv"] * decision_variable_dic["dv_unit_vect"]
+        rsw_delta_v = decision_variable_dic["dv"]
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
         delta_v_cartesian = rotation_matrix @ rsw_delta_v

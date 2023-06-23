@@ -1,4 +1,6 @@
+import gc
 import pdb
+import sys
 
 from scipy.optimize import minimize
 from simulation import run_simulation
@@ -42,7 +44,7 @@ def sim_wrapper(decision_var_arr, ObjectiveHistory_obj):
 def optimize_w_scipy(alg_name):
     """ Function defining full optimization problem with given algorithm"""
     # Settings
-    popsize = 80
+    popsize = 64
     max_generations = 50
     bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
 
@@ -61,7 +63,7 @@ def optimize_w_scipy(alg_name):
         initial_pop = np.array([dvr, dvs, dvw, t_impulse])
 
         # Select alg and optimize
-        if alg_name == 'NMS':
+        if True:
             print('Evaluating pop ', pop_idx + 1, '/', popsize)
 
             current_objective_history = ObjHistory()
@@ -78,27 +80,44 @@ def optimize_w_scipy(alg_name):
                 current_objective_history.true_fitness_history.append(current_objective_history.objective_history[true_index])
                 current_objective_history.true_constraint_history.append(current_objective_history.constraint_history[true_index])
 
+            current_objective_history.constraint_history = []
+            current_objective_history.objective_history = []
+            current_objective_history.decision_history = []
+            min_func = lambda func, args, x0, method, bounds, options, callback: minimize(fun=func, args=args,
+                                                                                          x0=x0, method=method,
+                                                                                          bounds=bounds,
+                                                                                          options=options,
+                                                                                          callback=callback)
 
+            result_obj_lst.append(min_func(sim_wrapper, (current_objective_history, ), initial_pop, alg_name,
+                                           bounds, {'maxiter': max_generations, 'return_all': True},
+                                           save_fitness))
+
+            del min_func
+            gc.collect()
+            """ 
             result_obj_lst.append(minimize(fun=sim_wrapper, args=(current_objective_history,),
                                            x0=initial_pop, method='Nelder-Mead', bounds=bounds,
                                   options={'maxiter': max_generations, 'return_all': True}, callback=save_fitness))
+            """
             # Append fitness and constraint values to save arrays
+
             all_pop_fitness_history.append(current_objective_history.true_fitness_history)
             all_pop_constraint_history.append(current_objective_history.true_constraint_history)
-
-
-        elif alg_name == 'BFGS':
-            current_objective_history = ObjHistory()    # TODO: Implement updating of this object
-            result_obj_lst.append(minimize(fun=sim_wrapper, x0=initial_pop, method='BFGS', bounds=bounds,
-                                  options={'maxiter': max_generations}))
+            print(sys.getsizeof(result_obj_lst)/10**6)
+            print(sys.getsizeof(all_pop_fitness_history) / 10 ** 6)
+            print(sys.getsizeof(all_pop_constraint_history) / 10 ** 6)
+            print(sys.getsizeof(current_objective_history) / 10 ** 6)
+            print(sys.getsizeof(minimize) / 10 ** 6)
 
     return result_obj_lst, all_pop_fitness_history, all_pop_constraint_history
 
 
 if __name__ == '__main__':
     cores_to_use = mp.cpu_count() - 2
-    alg_lst = ['NMS'
-               # , 'BFGS'
+    alg_lst = [
+        'Nelder-Mead'
+        # 'L-BFGS-B'
                ]
 
     savedirs = [f'./opt_output_{alg_name}/hi' for alg_name in alg_lst]
