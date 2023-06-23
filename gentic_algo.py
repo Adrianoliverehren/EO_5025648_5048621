@@ -34,7 +34,6 @@ class GA:
         self.fitness_function = fitness_function
         self.genes_array_boundaries = genes_array_boundaries
         if seed != "random":
-            print("Afa")
             self.np_rand = np.random.RandomState(seed)
         else:
             self.np_rand = np.random.RandomState()
