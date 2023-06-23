@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 def create_genera_info_plots(
     data_path = hf.external_sim_data_dir + "/DesignSpace/monte_carlo",
-    no_sims = 2**13
+    no_sims = 2**14
 ):
 
 

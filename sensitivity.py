@@ -87,19 +87,19 @@ if __name__ == '__main__':
             log_sensitivity_row.append(log_sensitivity(x, f, dxdf))
         log_sensitivity_matrix.append(log_sensitivity_row)
     # Plot
-    fig = plt.figure(figsize=(8, 4))
+    fig = plt.figure(figsize=(8, 4.5))
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twiny()
     
 
-    ax1.plot(v1_sorted[0], np.abs(log_sensitivity_matrix[0]), label=r'$\Delta V$ impulse in radial direction', lw=1.5, marker=".")
-    ax1.plot(v2_sorted[0], np.abs(log_sensitivity_matrix[1]), label=r'$\Delta V$ impulse in along-track direction', lw=1.5, marker=".")
-    ax1.plot(v3_sorted[0], np.abs(log_sensitivity_matrix[2]), label=r'$\Delta V$ impulse in cross-track direction', lw=1.5, marker=".")
+    ax1.plot(v1_sorted[0], (log_sensitivity_matrix[0]), label=r'$\Delta V$ impulse in radial direction', lw=1.5, marker=".")
+    ax1.plot(v2_sorted[0], (log_sensitivity_matrix[1]), label=r'$\Delta V$ impulse in along-track direction', lw=1.5, marker=".")
+    ax1.plot(v3_sorted[0], (log_sensitivity_matrix[2]), label=r'$\Delta V$ impulse in cross-track direction', lw=1.5, marker=".")
 
     ax1.set_xlabel('Velocity Impulse [m/s]')
     ax1.set_ylabel('Log-sensitivity [-]')
 
-    ax2.plot(t_impulse_sorted[0], np.abs(log_sensitivity_matrix[3]), label=r'Time of impulse', c="tab:red", lw=1.5, marker=".")
+    ax2.plot(t_impulse_sorted[0], (log_sensitivity_matrix[3]), label=r'Time of impulse', c="tab:red", lw=1.5, marker=".")
     ax2.set_xlabel('Time of Impulse [days]')
     
     custom_lines = [Line2D([0], [0], color="tab:blue", lw=1.5),

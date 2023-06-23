@@ -404,9 +404,10 @@ def create_integrator_analysis_plots(input_lst, path_to_save_plots, regen_data=T
         plt.show()   
 
 
-def plot_error_for_single_integrator(integrator_path, plot_save_path):
+def plot_error_for_single_integrator(integrator_path, plot_save_path, plot_name):
     
     error_states = np.genfromtxt(integrator_path + "/state_errors.dat").T   
+    num_states = np.genfromtxt(integrator_path + "/state_history.dat").T   
     
     eval_array_days = error_states[0] / (24*60**2)
     
@@ -414,9 +415,13 @@ def plot_error_for_single_integrator(integrator_path, plot_save_path):
     
     hf.plot_arrays(
         eval_array_days, [pos_error], x_label="Time [days]", y_label="Position error [m]", 
-        path_to_save=plot_save_path,
+        path_to_save=plot_save_path + f"/{plot_name}_error_vs_tome.pdf",
         y_log=True, plot_size=[4,4])
     
+    hf.plot_arrays(
+        num_states[0]/ (24*60**2), [np.diff(num_states[0], append=np.nan)], x_label="Time [days]", y_label="Timestep [s]", 
+        path_to_save=plot_save_path + f"/{plot_name}_dt_vs_tome.pdf",
+        plot_size=[4,4])    
     
     pass
 
@@ -442,14 +447,16 @@ if __name__ == "__main__":
     
     # compare_integrators_with_mp(input_lst, 16) 
     
-    input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
+    # input_lst = get_integrator_investigation_input_list(True, True, True, True, ["cowell", "mee", "usm_rod"])
     
     # create_integrator_analysis_plots(input_lst, hf.report_dir + "/Figures/Ch2", regen_data=True, show_all_integrators=True)
     
     plot_error_for_single_integrator(hf.sim_data_dir + "/integrator_analysis/cowell\\multistage\\variable\\rkdp_87\\atol=1e-12_rtol=1e-10", 
-                                     hf.report_dir + "/Figures/Ch2/cowell_rkdp_87_atol=1e-12_rtol=1e-10_error_vs_tome.pdf")
+                                     hf.report_dir + "/Figures/Ch2",
+                                     plot_name="cowell_rkdp_87_atol=1e-12_rtol=1e-10")
     plot_error_for_single_integrator(hf.sim_data_dir + "/integrator_analysis/mee\\multistage\\variable\\rkf_45\\atol=1e-12_rtol=1e-12", 
-                                     hf.report_dir + "/Figures/Ch2/mee_rkf_45_atol=1e-12_rtol=1e-12_error_vs_tome.pdf")
+                                     hf.report_dir + "/Figures/Ch2",
+                                     plot_name="mee_rkf_45_atol=1e-12_rtol=1e-12")
         
     # analyze_benchmarks()
     
