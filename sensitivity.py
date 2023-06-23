@@ -1,6 +1,6 @@
 import pdb
 import matplotlib.pyplot as plt
-
+from matplotlib.lines import Line2D
 import numpy as np
 import os
 import helper_functions as hf
@@ -76,9 +76,6 @@ if __name__ == '__main__':
     sorted_arrays_names = ["v1_sorted", "v2_sorted", "v3_sorted", "t_impulse_sorted"]
     log_sensitivity_matrix = []
     for sorted_array, name in zip(sorted_arrays, sorted_arrays_names):
-        print(name)
-        print(len(sorted_array[0]))
-        print(len(sorted_array[1]))
         log_sensitivity_row = []
         # derivative_arr = np.gradient(sorted_array[1], sorted_array[0])
         
@@ -90,28 +87,38 @@ if __name__ == '__main__':
             log_sensitivity_row.append(log_sensitivity(x, f, dxdf))
         log_sensitivity_matrix.append(log_sensitivity_row)
     # Plot
-    fig = plt.figure(figsize=(4, 4))
+    fig = plt.figure(figsize=(8, 4))
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twiny()
+    
 
-    ax1.plot(v1_sorted[0], np.abs(log_sensitivity_matrix[0]), label=r'$\Delta V$ impulse in radial direction', lw=2, marker=".")
-    ax1.plot(v2_sorted[0], np.abs(log_sensitivity_matrix[1]), label=r'$\Delta V$ impulse in along-track direction', lw=2, marker=".")
-    ax1.plot(v3_sorted[0], np.abs(log_sensitivity_matrix[2]), label=r'$\Delta V$ impulse in cross-track direction', lw=2, marker=".")
+    ax1.plot(v1_sorted[0], np.abs(log_sensitivity_matrix[0]), label=r'$\Delta V$ impulse in radial direction', lw=1.5, marker=".")
+    ax1.plot(v2_sorted[0], np.abs(log_sensitivity_matrix[1]), label=r'$\Delta V$ impulse in along-track direction', lw=1.5, marker=".")
+    ax1.plot(v3_sorted[0], np.abs(log_sensitivity_matrix[2]), label=r'$\Delta V$ impulse in cross-track direction', lw=1.5, marker=".")
 
     ax1.set_xlabel('Velocity Impulse [m/s]')
     ax1.set_ylabel('Log-sensitivity [-]')
 
-    ax2.plot(t_impulse_sorted[0], np.abs(log_sensitivity_matrix[3]), label=r'Time of impulse', c='magenta', lw=2, marker=".")
+    ax2.plot(t_impulse_sorted[0], np.abs(log_sensitivity_matrix[3]), label=r'Time of impulse', c="tab:red", lw=1.5, marker=".")
     ax2.set_xlabel('Time of Impulse [days]')
-    ax1.legend()
-    ax2.legend()
+    
+    custom_lines = [Line2D([0], [0], color="tab:blue", lw=1.5),
+                    Line2D([0], [0], color="tab:orange", lw=1.5),
+                    Line2D([0], [0], color="tab:green", lw=1.5),
+                    Line2D([0], [0], color="tab:red", lw=1.5)]
 
+
+    ax1.legend(custom_lines, 
+               [r'$\Delta V$ impulse in radial direction', 
+                r'$\Delta V$ impulse in along-track direction', 
+                r'$\Delta V$ impulse in cross-track direction', 
+                r'Time of impulse'],
+               loc="upper left")
+    
     plt.grid()
     plt.tight_layout()
 
-    plt.savefig(hf.report_dir + '/Figures/Ch2/LogSensitivity.pdf')
+    plt.savefig(hf.report_dir + '/Figures/Ch2/LogSensitivity.pdf', bbox_inches='tight')
     
-    plt.show()
-
     plt.clf()
     plt.cla()
