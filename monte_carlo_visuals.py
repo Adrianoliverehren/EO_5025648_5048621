@@ -5,6 +5,88 @@ import matplotlib.pyplot as plt
 
 
 
+def create_one_at_a_time_plots(
+    data_path = hf.external_sim_data_dir + "/DesignSpace/monte_carlo_one_at_a_time",
+    no_sims = 2**7
+):
+    
+    
+    
+    objective_constraints = np.genfromtxt(data_path + "/objectives_constraints.dat").T
+    
+    parameter_values = hf.create_dic_drom_json(data_path + "/parameter_values.dat")
+    
+    dv_r_dir = np.zeros(no_sims)
+    dv_s_dir = np.zeros(no_sims)
+    dv_w_dir = np.zeros(no_sims)
+    t_impulse = np.zeros(no_sims)
+    t_survive = [np.zeros(no_sims), np.zeros(no_sims), np.zeros(no_sims), np.zeros(no_sims)]
+    unfeasible_ids = [[],[],[],[]]
+    
+    for iter in range(no_sims):
+            
+        dv_r_dir[iter] = parameter_values[str(iter+0*no_sims)]["dv"][0]
+        dv_s_dir[iter] = parameter_values[str(iter+1*no_sims)]["dv"][1]
+        dv_w_dir[iter] = parameter_values[str(iter+2*no_sims)]["dv"][2]
+        t_impulse[iter] = parameter_values[str(iter+3*no_sims)]["t_impulse"] / (24*60**2) 
+        
+        t_survive[0][iter] = objective_constraints[1][iter+0*no_sims] / (24*60**2)
+        t_survive[1][iter] = objective_constraints[1][iter+1*no_sims] / (24*60**2)
+        t_survive[2][iter] = objective_constraints[1][iter+2*no_sims] / (24*60**2)
+        t_survive[3][iter] = objective_constraints[1][iter+3*no_sims] / (24*60**2)
+        
+        if objective_constraints[2][iter+0*no_sims] > 0:
+            unfeasible_ids[0].append(iter)
+        if objective_constraints[2][iter+1*no_sims] > 0:
+            unfeasible_ids[1].append(iter)
+        if objective_constraints[2][iter+2*no_sims] > 0:
+            unfeasible_ids[2].append(iter)
+        if objective_constraints[2][iter+3*no_sims] > 0:
+            unfeasible_ids[3].append(iter)
+        
+    dv_r_dir_feasible = np.delete(dv_r_dir, unfeasible_ids[0])
+    dv_r_dir_unfeasible = np.take(dv_r_dir, unfeasible_ids[0])
+    
+    dv_s_dir_feasible = np.delete(dv_s_dir, unfeasible_ids[1])
+    dv_s_dir_unfeasible = np.take(dv_s_dir, unfeasible_ids[1])
+    
+    dv_w_dir_feasible = np.delete(dv_w_dir, unfeasible_ids[2])
+    dv_w_dir_unfeasible = np.take(dv_w_dir, unfeasible_ids[2])
+    
+    t_impulse_feasible = np.delete(t_impulse, unfeasible_ids[3])
+    t_impulse_unfeasible = np.take(t_impulse, unfeasible_ids[3])
+    
+    t_survive_feasible = [[]]*4
+    t_survive_unfeasible = [[]]*4
+    
+    t_survive_feasible[0] = np.delete(t_survive[0], unfeasible_ids[0])
+    t_survive_unfeasible[0] = np.take(t_survive[0], unfeasible_ids[0])
+    
+    t_survive_feasible[1] = np.delete(t_survive[1], unfeasible_ids[1])
+    t_survive_unfeasible[1] = np.take(t_survive[1], unfeasible_ids[1])
+    
+    t_survive_feasible[2] = np.delete(t_survive[2], unfeasible_ids[2])
+    t_survive_unfeasible[2] = np.take(t_survive[2], unfeasible_ids[2])
+    
+    t_survive_feasible[3] = np.delete(t_survive[3], unfeasible_ids[3])
+    t_survive_unfeasible[3] = np.take(t_survive[3], unfeasible_ids[3])
+            
+    
+    hf.plot_arrays([dv_r_dir_unfeasible, dv_r_dir_feasible], [t_survive_unfeasible[0], t_survive_feasible[0]], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_r_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([dv_s_dir_unfeasible, dv_s_dir_feasible], [t_survive_unfeasible[1], t_survive_feasible[1]], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_s_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([dv_w_dir_unfeasible, dv_w_dir_feasible], [t_survive_unfeasible[2], t_survive_feasible[2]], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="dv_w_dir", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    hf.plot_arrays([t_impulse_unfeasible, t_impulse_feasible], [t_survive_unfeasible[3], t_survive_feasible[3]], linewiths=[0]*len(dv_r_dir), markings=True, keep_in_memory=True,
+                    y_label="Survival time [days]", x_label="t_impulse", colors=["gray", "tab:blue"], alphas=[0.2, 1])
+    
+    
+    plt.show()
+
 
 
 
@@ -95,4 +177,6 @@ def create_genera_info_plots(
 
 if __name__ == "__main__":
     
-    create_genera_info_plots()
+    create_one_at_a_time_plots()
+    
+    # create_genera_info_plots()
