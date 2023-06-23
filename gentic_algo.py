@@ -34,6 +34,7 @@ class GA:
         self.fitness_function = fitness_function
         self.genes_array_boundaries = genes_array_boundaries
         if seed != "random":
+            print("Afa")
             self.np_rand = np.random.RandomState(seed)
         else:
             self.np_rand = np.random.RandomState()
@@ -186,16 +187,37 @@ class GA:
             
 
         pass
+
+
+def investigate_different_ga_settings(mp_nodes):
+    
+    gen_algo = GA(get_fitness, bounds, 42)
+    for mutation_probability in np.linspace(0.01, 0.9, 20):
+        gen_algo.evolve_population(
+            20, 80, 6, mutation_probability, 4, mp_nodes, 
+            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/mutation_probability_investigation/value={mutation_probability}")
         
+    for breeding_parents in np.arange(2, 14, 2):
+        gen_algo.evolve_population(
+            20, 80, breeding_parents, 0.5, 4, mp_nodes, 
+            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/breeding_parents_investigation/value={breeding_parents}")
+        
+    for no_parent_to_keep in np.arange(2, 10, 2):
+        gen_algo.evolve_population(
+            20, 80, 6, 0.5, no_parent_to_keep, mp_nodes, 
+            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/mutation_probability_investigation/value={no_parent_to_keep}")
+    
+    
+    pass
+    
 
         
 if __name__ == "__main__":
     
     bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
     
-    gen_algo = GA(get_fitness, bounds, 42)
-        
-    gen_algo.evolve_population(20, 80, 6, 0.6, 4, 6, path_to_save_data=hf.sim_data_dir + "/custom_genetic_algo/test_run2")
+    
+    investigate_different_ga_settings(20)
     
     
     

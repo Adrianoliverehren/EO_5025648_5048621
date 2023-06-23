@@ -7,7 +7,7 @@ import multiprocessing as mp
 import pickle
 from scipy.stats.qmc import Sobol
 import helper_functions as hf
-
+import gc
 
 class ObjHistory():
     def __init__(self):
@@ -17,6 +17,7 @@ class ObjHistory():
         self.true_fitness_history = []
         self.true_constraint_history = []
 
+current_objective_history = ObjHistory()
 
 def sim_wrapper(decision_var_arr, ObjectiveHistory_obj):
     """Wraps simulation function to allow for input and output format necessary for scipy optimization algorithms"""
@@ -26,6 +27,8 @@ def sim_wrapper(decision_var_arr, ObjectiveHistory_obj):
 
     _, [unpenalized_objective, constraint] = run_simulation(False, 6 * 31 * 24 * 60**2,
                                                             decision_variable_dic=decision_var_dict)
+    
+    
 
     if constraint > 0:
         penalty = constraint**2 * 10**6
@@ -38,6 +41,20 @@ def sim_wrapper(decision_var_arr, ObjectiveHistory_obj):
     ObjectiveHistory_obj.decision_history.append(decision_var_arr)
     return objective
 
+def save_fitness(input):
+    # Find which function evaluation is actually necessary
+    print(len(current_objective_history.decision_history), end="\r")
+    for index, decision_vec in enumerate(current_objective_history.decision_history):
+        list_entries_match = [True if stored_x == input_x else False for stored_x, input_x in zip(decision_vec, input)]
+        if all(list_entries_match):
+            true_index = index
+    
+    # Append it to list of values to save
+    current_objective_history.true_fitness_history.append(current_objective_history.objective_history[true_index])
+    current_objective_history.true_constraint_history.append(current_objective_history.constraint_history[true_index])
+    # current_objective_history.objective_history = []
+    # current_objective_history.constraint_history = []
+    # current_objective_history.decision_history = []
 
 def optimize_w_scipy(alg_name):
     """ Function defining full optimization problem with given algorithm"""
@@ -62,33 +79,19 @@ def optimize_w_scipy(alg_name):
 
         # Select alg and optimize
         if alg_name == 'NMS':
-            print('Evaluating pop ', pop_idx + 1, '/', popsize)
+            print('\nEvaluating pop ', pop_idx + 1, '/', popsize)
 
-            current_objective_history = ObjHistory()
-
-            # Callback function to save fitness history
-            def save_fitness(input):
-                # Find which function evaluation is actually necessary
-                for index, decision_vec in enumerate(current_objective_history.decision_history):
-                    list_entries_match = [True if stored_x == input_x else False for stored_x, input_x in zip(decision_vec, input)]
-                    if all(list_entries_match):
-                        true_index = index
-
-                # Append it to list of values to save
-                current_objective_history.true_fitness_history.append(current_objective_history.objective_history[true_index])
-                current_objective_history.true_constraint_history.append(current_objective_history.constraint_history[true_index])
-
-
-            result_obj_lst.append(minimize(fun=sim_wrapper, args=(current_objective_history,),
-                                           x0=initial_pop, method='Nelder-Mead', bounds=bounds,
-                                  options={'maxiter': max_generations, 'return_all': True}, callback=save_fitness))
+            result_obj_lst.append()
+            current_objective_history.objective_history = []
+            current_objective_history.constraint_history = []
+            current_objective_history.decision_history = []
             # Append fitness and constraint values to save arrays
             all_pop_fitness_history.append(current_objective_history.true_fitness_history)
             all_pop_constraint_history.append(current_objective_history.true_constraint_history)
 
 
         elif alg_name == 'BFGS':
-            current_objective_history = ObjHistory()    # TODO: Implement updating of this object
+            
             result_obj_lst.append(minimize(fun=sim_wrapper, x0=initial_pop, method='BFGS', bounds=bounds,
                                   options={'maxiter': max_generations}))
 
