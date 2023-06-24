@@ -182,7 +182,7 @@ def plot_arrays(
 
 def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=None, x_label=None, y_label=None,
     grid=True, x_log=False, y_log=False, plot_size=[4,4], additional_save_path=None, keep_in_memory=False, 
-    normalize_colourbar=None, z_label=None, filter_ids=None ,**kwargs):
+    normalize_colourbar=None, z_label=None, filter_ids=None, marker_size=30, **kwargs):
     
     plt.figure()
     
@@ -227,12 +227,12 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
         y_below_zero = np.take(y_array, ids_below_zero)
         z_below_zero = np.take(z_array, ids_below_zero)
         
-        plt.scatter(x_below_zero, y_below_zero, c="gray", marker=".")
+        plt.scatter(x_below_zero, y_below_zero, c="gray", marker=".", s=marker_size)
         x_array = np.take(x_array, ids_above_zero)
         y_array = np.take(y_array, ids_above_zero)
         z_array = np.take(z_array, ids_above_zero)
     
-        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map)
+        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map, s=marker_size)
     
     if normalize_colourbar=="log":
         
@@ -246,11 +246,11 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
         norm=colors.LogNorm(vmin=np.min(z_array), 
         vmax=np.max(z_array))
         
-        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map, norm=norm)
+        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map, norm=norm, s=marker_size)
     
     else:
         
-        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map)
+        plt.scatter(x_array, y_array, c=z_array, cmap=reversed_map, s=marker_size)
     
 
     # Add a colorbar for reference

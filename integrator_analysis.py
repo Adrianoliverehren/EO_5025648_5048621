@@ -60,12 +60,14 @@ benchmark_path = hf.sim_data_dir + "/integrator_analysis/benchmarks/rkf_56/dt=60
 
 max_time = 30
 
+
 def make_log(i, results, len_data):
     def logger(evaluation):
         results.append(evaluation)
         print(f"{len(results)} / {len_data} completed, {len_data - len(results)} remaining")
         del evaluation
     return logger
+
 
 def gen_benchmarks(mp_nodes=None, rerun_sims=True, path_to_save_plots=hf.root_dir + "/Figures/benchmarks"):
         
@@ -402,7 +404,6 @@ def create_integrator_analysis_plots(input_lst, path_to_save_plots, regen_data=T
                     y_log=True, y_label="Pos error [m]", x_label="f-evals [-]", 
                     label_points=label_points, keep_in_memory=True, markings=True)
         plt.show()   
-
 
 def plot_error_for_single_integrator(integrator_path, plot_save_path, plot_name):
     

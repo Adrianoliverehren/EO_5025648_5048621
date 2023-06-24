@@ -183,8 +183,6 @@ class GA:
             with open(pickle_file, 'wb') as outp:
                 pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
             
-            
-
         pass
 
 
@@ -215,8 +213,15 @@ def investigate_different_ga_settings(mp_nodes):
         
 if __name__ == "__main__":
     
+    bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
     
-    investigate_different_ga_settings(20)
+    gen_algo = GA(get_fitness, bounds, 42)
+    gen_algo.evolve_population(
+        50, 120, 4, 0.4, 2, 20, 
+        path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
+    
+    
+    # investigate_different_ga_settings(20)
     
     
     

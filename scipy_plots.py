@@ -6,10 +6,17 @@ import helper_functions as hf
 
 
 def fitness_to_time(fitness, constraint):
-    if constraint > 0:
-        return constraint**2 * 10**6 - fitness
-    else:
-        return - fitness
+    time = []
+    for index in range(len(fitness)):
+        current_constraint = constraint[index]
+        current_fitness = fitness[index]
+        if current_constraint > 0:
+            time.append(current_constraint**2 * 10**6 - current_fitness)
+
+        else:
+            time.append(-current_fitness)
+
+    return time
 
 
 def best_pop_idx(result_obj_lst):
@@ -25,7 +32,7 @@ def best_pop_idx(result_obj_lst):
 
 if __name__ == '__main__':
     # Directory to read npy files from for plotting
-    read_dir = './opt_output_NMS/'
+    read_dir = './opt_output_Nelder-Mead/'
     plot_dir = './Figures/Scipy/NMS/'
 
     hf.make_ALL_folders_for_path(plot_dir + 'hello')
@@ -52,7 +59,9 @@ if __name__ == '__main__':
             constraint = pickle.load(f)
         constraint_history_lst.append(constraint)
 
-    pops_to_plot = [1]
+
+
+    pops_to_plot = [best_pop_idx(result_obj_lst)]
     fig = plt.figure(11, figsize=(4, 4))
     ax1 = fig.add_subplot(111)
     for pop_idx in pops_to_plot:
@@ -66,9 +75,6 @@ if __name__ == '__main__':
     ax1.grid()
     plt.tight_layout()
     plt.savefig(plot_dir + 'fitness_v_gen.pdf', bbox_inches='tight')
-    plt.cla()
-    plt.clf()
-
 
     fig = plt.figure(22, figsize=(4, 4))
     ax1 = fig.add_subplot(111)
@@ -82,7 +88,23 @@ if __name__ == '__main__':
     ax1.legend()
     ax1.grid()
     plt.tight_layout()
-    plt.show()
     plt.savefig(plot_dir + 'con_v_gen.pdf', bbox_inches='tight')
-    plt.cla()
-    plt.clf()
+
+    fig = plt.figure(33, figsize=(4, 4))
+    ax1 = fig.add_subplot(111)
+    for pop_idx in pops_to_plot:
+        # Plot constraint vs generation
+        gen_lst = np.arange(0, len(constraint_history_lst[pop_idx]), 1)
+        ax1.plot(gen_lst,
+                 np.array(fitness_to_time(fitness_history_lst[pop_idx], constraint_history_lst[pop_idx])) / (24*60*60),
+                 label=f'Pop #{pop_idx}')
+
+    ax1.set_xlabel('Generation [-]')
+    ax1.set_ylabel('Survival time [s]')
+    ax1.legend()
+    ax1.grid()
+    plt.tight_layout()
+    plt.savefig(plot_dir + 't_survive_v_gen.pdf', bbox_inches='tight')
+
+    print('Best decision values = ', result_obj_lst[best_pop_idx(result_obj_lst)].x)
+    plt.show()
