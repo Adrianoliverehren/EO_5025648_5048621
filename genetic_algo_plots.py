@@ -165,7 +165,7 @@ def investigate_gen_algo_investigation(
 
 
 def plot_various_optimization_results(
-    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_1"    
+    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_4"    
 ):
     
     
@@ -216,10 +216,10 @@ def plot_various_optimization_results(
 
 if __name__ == "__main__":
     
-    plot_evolution_info(120, hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
+    # plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_4")
     
-    # investigate_gen_algo_investigation()
+    investigate_gen_algo_investigation()
     
-    plot_various_optimization_results()
+    # plot_various_optimization_results()
     
     pass
