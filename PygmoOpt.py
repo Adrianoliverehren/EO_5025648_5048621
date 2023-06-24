@@ -12,17 +12,29 @@ from helper_functions import make_ALL_folders_for_path
 
 if __name__ == '__main__':
     # Inputs
-    x_min_lst = [-1, -1, -2, 0]
+    x_min_lst = [-1, -1, -2, 120]
     x_max_arr = [1, 1, 2, 2 * 24 * 60 ** 2]
-    n_generations = 50
-    pop_size = 50
+    n_generations = 100
+    pop_size = 128
     seed = 42
     BFE = False  # set to True for parallel processing
-    save_dir = './NMS/'
+    # save_dir = './NMS/'
+    # save_dir = './GACO/'
+    # save_dir =  './PSO/'
+    save_dir = './DE/'
 
     # Pick algorithm
     # Nelder-Mead Simplex
-    algo = pg.nlopt(solver="neldermead")
+    # algo = pg.nlopt(solver="neldermead")
+
+    # Extended ant colony
+    # algo = pg.gaco()
+
+    # Particle Swarm
+    # algo = pg.pso()
+
+    # Differnetial evolution
+    algo = pg.de()
 
     # Initialize problem
     problem = pg.problem(GEOProblem(x_min_lst, x_max_arr))
