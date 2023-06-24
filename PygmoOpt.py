@@ -77,4 +77,3 @@ if __name__ == '__main__':
         with open(current_dir + 'population.pkl', 'wb') as outp:
             pickle.dump(pop, outp, pickle.HIGHEST_PROTOCOL)
 
-
