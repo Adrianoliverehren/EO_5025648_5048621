@@ -14,7 +14,10 @@ import matplotlib.colors as mcolors
 import tudatpy.kernel.interface.spice as spice
 from tudatpy.kernel.astro.element_conversion import cartesian_to_keplerian
 from matplotlib import colors
-
+import matplotlib.animation as animation
+from PIL import Image
+import glob
+from natsort import natsorted
 
 def remove_folder_from_path(path : str, no_to_remove=1):
     path = path.replace("\\", "/")
@@ -31,14 +34,12 @@ sim_data_dir = os.path.dirname(__file__) + "/SimulationData"
 plots_dir = os.path.dirname(__file__) + "/SimulationData/plots/"
 external_sim_data_dir = remove_folder_from_path(os.path.dirname(__file__), 1) + "/SimulationData"
 
-
-
 def plot_arrays(
     x_arrays, y_arrays, path_to_save=False, title=None, x_label=None, y_label=None, scale_factor=None,
     legend=None, grid=True, x_log=False, linestyles=None, linewiths=None, plot_size=[4,4], colors=None, x_lim=None, legend_pos=None,
     force_xticks=False, force_sci_notation=False, custom_legend_entries=None, custom_markings=None, markers=None, marker_colors=None,
     markerfacecolors=None, marker_sizes=None, keep_in_memory=False, y_log=False, markings=None, additional_save_path=None, 
-    alphas=None, **kwargs):
+    alphas=None, y_simlog=False, **kwargs):
     
     if type(x_arrays[0]) not in [list, np.ndarray]:
         x_arrays = [x_arrays] * len(y_arrays)
@@ -159,6 +160,9 @@ def plot_arrays(
         
     if y_log:
         plt.yscale('log')
+        
+    if y_simlog:
+        plt.yscale("symlog")
         
     if x_lim:
         plt.xlim(x_lim[0], x_lim[1])
@@ -283,10 +287,10 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
         plt.close()
 
 
-def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, x_label=None, y_label=None, z_label=None,
-    grid=True, keep_in_memory=False, legend=None):
+def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, animate="no", path_to_save=None, keep_in_memory=False):
 
-    fig = plt.figure()
+    plt.figure()
+
     ax = plt.axes(projection='3d')
     
     c_array = np.linspace(0, 2*np.pi, 200)
@@ -299,18 +303,9 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, x_
     
     big_time_list = []
     
-    for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
+    for t in time_array:
+        big_time_list += list(t)    
         
-        big_time_list += list(t)        
-        lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
-        ax.plot3D(lat, long, t, c)
-    
-    ax.plot3D(x_lim, y_lim, [time_array[0][0]]*len(x_lim), 'red')
-    
-    ax.view_init(elev=20., azim=-135.)
-    
-    # maxmax = max(np.max(np.abs(lat_arrays)), np.max(np.abs(long_arrays)))*1.1* np.rad2deg(1)
-    
     long_list = []
     
     for lat, long in zip(lat_arrays, long_arrays):
@@ -319,7 +314,11 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, x_
     
     maxmax = max(np.abs(long_list))*1.1* np.rad2deg(1)
     minmin = -maxmax
+        
+    ax.plot3D(x_lim, y_lim, [time_array[0][0]]*len(x_lim), 'red', alpha=0.4)
     
+    ax.view_init(elev=20., azim=-135.)
+       
     
     max_time = max(big_time_list)
     min_time = min(big_time_list)
@@ -330,28 +329,86 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, x_
     
     ax.plot3D([maxmax]*2, [constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
     ax.plot3D([maxmax]*2, [-constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
-    for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
-        
-        lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
     
-        ax.plot3D(lat, [maxmax]*len(lat), t, c, alpha=0.4)
-        ax.plot3D([maxmax]*len(lat), long, t, c, alpha=0.4)
+    def get_animation(frame):
+        for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
+            id_to_slice = int(frame/100 * len(lat))   
+            lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
+        
+            ax.plot3D(lat[:id_to_slice], ([maxmax]*len(lat))[:id_to_slice], t[:id_to_slice], c, alpha=0.4)
+            ax.plot3D(([maxmax]*len(lat))[:id_to_slice], long[:id_to_slice], t[:id_to_slice], c, alpha=0.4)
+        for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
+            
+            
+            id_to_slice = int(frame/100 * len(lat))   
+            lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
+            
+            ax.plot3D(lat[:id_to_slice], long[:id_to_slice], t[:id_to_slice], c)
+    
+    if animate == "no":
+        get_animation(100)
+    else:
+        get_animation(animate)
+        
     
     ax.set_xlabel("Latitude [deg]")
     ax.set_ylabel("Longitude [deg]")
-    ax.set_zlabel("Survival time [days]")
+    ax.set_zlabel("Time [days]")
     
     ax.set_xlim(xmin=minmin, xmax=maxmax)
     ax.set_ylim(ymin=minmin, ymax=maxmax)
     
-    
     plt.tight_layout()
+        
+    if path_to_save:        
+        path = pathlib.Path(path_to_save)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(path_to_save)
 
-
+    if keep_in_memory == False:
+        plt.close()
+    
     pass
 
 
+def make_gif_from_pngs(image_directory):
+    
 
+    # List all image files in the directory
+    image_files = glob.glob(image_directory + "*.png")  # Change the extension according to your image format
+
+    # Sort the image files based on their names (if necessary)
+    image_files = natsorted(image_files)
+
+    # Create an empty list to store the images
+    images = []
+    
+    print(image_files)
+
+    # Open and append each image to the list
+    for filename in image_files:
+        img = Image.open(filename)
+        images.append(img)
+        
+
+    # Save the images as a GIF
+    output_file = "output.gif"
+
+    # Use the save method of the first image, and pass the other images as frames
+    images[0].save(image_directory + output_file, save_all=True, append_images=images[1:], duration=200, loop=0)
+
+
+def create_animated_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, path_to_save_animation, filetype="png"):
+    
+    i = 0
+    for ix in np.linspace(0, 100, 200):
+        
+        path_to_save = path_to_save_animation + f"/frame_{i}.{filetype}"
+        create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, animate=ix, path_to_save=path_to_save, keep_in_memory=False)
+        
+        i+=1
+    
+    pass
 
 def plot_heatmap_scatter_multi_decision_vars(x_arrays, y_arrays, z_arrays, markers, path_to_save=False, title=None, x_label=None, y_label=None,
     grid=True, x_log=False, y_log=False, plot_size=[4,4], additional_save_path=None, keep_in_memory=False, 
@@ -578,7 +635,6 @@ def calculate_obj(dependent_var_history, sim_idx="n/a"):
     warnings.warn(f'Simulation #{sim_idx} never exceeded position constraint, returned final time')
     return list(dependent_var_history.keys())[-1]
 
-
 def period_change(state_history, t_impulse, dependent_var_history):
     t_arr = np.array(list(state_history.keys()))
     state_history_arr = np.array(list(state_history.values()))
@@ -614,28 +670,6 @@ def period_change(state_history, t_impulse, dependent_var_history):
 if __name__ == "__main__":
     
     
-    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_506\dependent_variable_history.dat").T
-    
-    lat1 = dep_vars[6]
-    long1 = dep_vars[7]
-    time1 = dep_vars[0] / (24*60**2)
-    
-    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_21\dependent_variable_history.dat").T
-    
-    lat2 = dep_vars[6]
-    long2 = dep_vars[7]
-    time2 = dep_vars[0] / (24*60**2)
-    
-    dep_vars = np.genfromtxt("D:/final assignment\SimulationData\DesignSpace\monte_carlo_one_at_a_time\iter_220\dependent_variable_history.dat").T
-    
-    lat3 = dep_vars[6]
-    long3 = dep_vars[7]
-    time3 = dep_vars[0] / (24*60**2)
-    
-    
-    create_lat_long_circle_plot([lat1, lat2, lat3], [long1, long2, long3], [time1, time2, time3], colours=["tab:green", "tab:blue", "tab:orange"], x_label=None, y_label=None, z_label=None,
-    grid=True, keep_in_memory=False, legend=None)
-    
-    plt.show()
+    make_gif_from_pngs(external_sim_data_dir + "/custom_genetic_algo/animation/")
     
     # print(np.rad2deg(constraint()))
