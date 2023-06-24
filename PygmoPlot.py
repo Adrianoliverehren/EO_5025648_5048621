@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 
 import matplotlib.pyplot as plt
 import pygmo as pg
@@ -8,10 +9,57 @@ from simulation import run_simulation
 import helper_functions as hf
 
 
+def save_stuff(data_dir, save_dir, filename):
+    """
+    Takes data of best entries for each generation in a given directory and saves it compactly
+    Args:
+        data_dir: directory with all generation files
+        save_dir: directory to save to
+        filename: name of saved file
+    """
+
+    fitness_lst = []
+    t_survive_lst = []
+    constraint_lst = []
+    x_lst = []
+    generation_lst = []
+    # For every generation read the population object
+    for gen_idx in range(len(os.listdir(data_dir))):
+        current_subdir = read_dir + f'gen_{gen_idx}/'
+        with open(current_subdir + 'population.pkl', 'rb') as f:
+            current_population = pickle.load(f)
+
+            # Get fitness
+            fitness_lst.append(current_population.get_f()[current_population.best_idx()])
+
+            # get x and repropagate to get t survive and constraint value
+            best_x_of_gen = current_population.get_x()[current_population.best_idx()]
+            decision_var_dict = {'dv': np.array([best_x_of_gen[0], best_x_of_gen[1], best_x_of_gen[2]]),
+                                 't_impulse': best_x_of_gen[3]}
+
+            _, [unpenalized_objective, constraint] = run_simulation(False, 6 * 31 * 24 * 60 ** 2,
+                                                           decision_variable_dic=decision_var_dict)
+
+            t_survive_lst.append(unpenalized_objective)
+
+            constraint_lst.append(constraint)
+
+            x_lst.append(best_x_of_gen)
+            generation_lst.append(gen_idx)
+
+    save_matrix = [fitness_lst, t_survive_lst, constraint_lst, x_lst, generation_lst]
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    with open(save_dir + filename, 'wb') as outp:
+        pickle.dump(save_matrix, outp, pickle.HIGHEST_PROTOCOL)
+
+
 if __name__ == '__main__':
-    read_dir = './GACO/'
-    save_dir = './Figures/Pygmo/GACO/'
+    read_dir = './NMS/'
+    save_dir = './Figures/Pygmo/NMS/'
     hf.make_ALL_folders_for_path(save_dir + 'hello')
+
+    save_stuff('./NMS/', './NMS/', 'best_of_NMS.pkl')
 
     all_generations = []
     # For every generation read the population object
@@ -22,7 +70,7 @@ if __name__ == '__main__':
         all_generations.append(current_population)
 
     # Plot fitness over generations
-    if True:
+    if False:
         fig = plt.figure(11, figsize=(4, 4))
         ax1 = fig.add_subplot(111)
 
@@ -40,9 +88,9 @@ if __name__ == '__main__':
         plt.tight_layout()
         plt.savefig(save_dir + 'fitness_v_gen.pdf', bbox_inches='tight')
 
+    # Plot survival time over generations
+    if False:
 
-    if True:
-        # Plot survival time over generations
         fig = plt.figure(12, figsize=(4, 4))
         ax1 = fig.add_subplot(111)
 
@@ -68,3 +116,4 @@ if __name__ == '__main__':
         ax1.grid()
         plt.tight_layout()
         plt.savefig(save_dir + 't_survive_v_gen.pdf', bbox_inches='tight')
+
