@@ -165,13 +165,13 @@ def create_general_info_plots(
     
     hf.plot_heatmap_scatter(dv_r_dir, t_impulse / (24*60**2), [objective_constraints[1] / (24*60**2)], keep_in_memory=False, x_label=r"$\Delta V$ in radial direction [m/s]",
                             y_label="Time of impulse [days]", z_label="Survival time [days]", filter_ids=unfeasible_ids,
-                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/R_and_t_impulse_vs_survival_time.pdf")
+                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/R_and_t_impulse_vs_survival_time.pdf", plot_size=[3,3.5], marker_size=20)
     hf.plot_heatmap_scatter(dv_s_dir, t_impulse / (24*60**2), [objective_constraints[1] / (24*60**2)], keep_in_memory=False, x_label=r"$\Delta V$ in along track direction [m/s]",
                             y_label="Time of impulse [days]", z_label="Survival time [days]", filter_ids=unfeasible_ids,
-                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/S_and_t_impulse_vs_survival_time.pdf")
+                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/S_and_t_impulse_vs_survival_time.pdf", plot_size=[3,3.5], marker_size=20)
     hf.plot_heatmap_scatter(dv_w_dir, t_impulse / (24*60**2), [objective_constraints[1] / (24*60**2)], keep_in_memory=False, x_label=r"$\Delta V$ in cross track direction [m/s]",
                             y_label="Time of impulse [days]", z_label="Survival time [days]", filter_ids=unfeasible_ids,
-                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/W_and_t_impulse_vs_survival_time.pdf")
+                            path_to_save=hf.report_dir + "/Figures/Ch2/monte_carlo/all_at_once/W_and_t_impulse_vs_survival_time.pdf", plot_size=[3,3.5], marker_size=20)
     
     
     
