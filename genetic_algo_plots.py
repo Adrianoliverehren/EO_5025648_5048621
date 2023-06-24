@@ -130,8 +130,8 @@ def investigate_gen_algo_investigation(
 
 if __name__ == "__main__":
     
-    # plot_evolution_info(80, hf.external_sim_data_dir + "/custom_genetic_algo/breeding_parents_investigation/value=12")
+    plot_evolution_info(120, hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
     
-    investigate_gen_algo_investigation()
+    # investigate_gen_algo_investigation()
     
     pass
