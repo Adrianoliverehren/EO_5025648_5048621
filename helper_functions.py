@@ -17,7 +17,7 @@ from matplotlib import colors
 import matplotlib.animation as animation
 from PIL import Image
 import glob
-from natsort import natsorted
+
 
 def remove_folder_from_path(path : str, no_to_remove=1):
     path = path.replace("\\", "/")
@@ -214,7 +214,7 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
         y_unwanted = np.take(y_array, filter_ids)
         z_unwanted = np.take(z_array, filter_ids)
         
-        # plt.scatter(x_unwanted, y_unwanted, c="gray", marker=".")
+        plt.scatter(x_unwanted, y_unwanted, c="gray", marker="o", s=marker_size/50, edgecolors="none")
         
         x_array = np.delete(x_array, filter_ids)
         y_array = np.delete(y_array, filter_ids)
@@ -286,8 +286,9 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
     if keep_in_memory == False:
         plt.close()
 
-
-def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, animate="no", path_to_save=None, keep_in_memory=False):
+def create_lat_long_circle_plot(
+    lat_arrays, long_arrays, time_array, colours, animate="no", path_to_save=None, keep_in_memory=False,
+    legend=None):
 
     plt.figure()
 
@@ -330,9 +331,15 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, an
     ax.plot3D([maxmax]*2, [constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
     ax.plot3D([maxmax]*2, [-constraint() * np.rad2deg(1)]*2, [min_time, max_time], 'red', alpha=0.4)
     
-    def get_animation(frame):
+    def get_animation(time_percentage):
+        
+        time_to_slice_at = min_time + (max_time - min_time) * (time_percentage / 100)
+        
         for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
-            id_to_slice = int(frame/100 * len(lat))   
+            
+            
+            
+            id_to_slice = np.absolute(t-time_to_slice_at).argmin()
             lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
         
             ax.plot3D(lat[:id_to_slice], ([maxmax]*len(lat))[:id_to_slice], t[:id_to_slice], c, alpha=0.4)
@@ -340,7 +347,7 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, an
         for lat, long, t, c in zip(lat_arrays, long_arrays, time_array, colours):
             
             
-            id_to_slice = int(frame/100 * len(lat))   
+            id_to_slice = np.absolute(t-time_to_slice_at).argmin()
             lat, long = lat*np.rad2deg(1), long*np.rad2deg(1)
             
             ax.plot3D(lat[:id_to_slice], long[:id_to_slice], t[:id_to_slice], c)
@@ -358,6 +365,16 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, an
     ax.set_xlim(xmin=minmin, xmax=maxmax)
     ax.set_ylim(ymin=minmin, ymax=maxmax)
     
+    if legend:
+    
+        custom_lines = [Line2D([0], [0], color=c, lw=1.5) for c in colours]
+
+
+        ax.legend(custom_lines, 
+                legend,
+                )
+    
+    
     plt.tight_layout()
         
     if path_to_save:        
@@ -370,9 +387,8 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, an
     
     pass
 
-
 def make_gif_from_pngs(image_directory):
-    
+    from natsort import natsorted
 
     # List all image files in the directory
     image_files = glob.glob(image_directory + "*.png")  # Change the extension according to your image format
@@ -397,14 +413,14 @@ def make_gif_from_pngs(image_directory):
     # Use the save method of the first image, and pass the other images as frames
     images[0].save(image_directory + output_file, save_all=True, append_images=images[1:], duration=200, loop=0)
 
-
-def create_animated_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, path_to_save_animation, filetype="png"):
+def create_animated_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, path_to_save_animation, filetype="png", legend=None):
     
     i = 0
     for ix in np.linspace(0, 100, 200):
         
         path_to_save = path_to_save_animation + f"/frame_{i}.{filetype}"
-        create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, animate=ix, path_to_save=path_to_save, keep_in_memory=False)
+        create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, animate=ix, path_to_save=path_to_save,
+                                    keep_in_memory=False, legend=legend)
         
         i+=1
     

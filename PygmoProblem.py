@@ -2,6 +2,7 @@ import pygmo as pg
 import numpy as np
 import multiprocessing as mp
 from simulation import run_simulation
+from scipy.misc import derivative
 
 
 class GEOProblem:
@@ -47,5 +48,14 @@ class GEOProblem:
 
         return np.array(fitnesses).flatten()
 
+    def fitness_gradient_wrapper(self, x0, dv, dv_id):
+        dv[dv_id] = x0
+        return self.fitness(dv)[0]
 
+    def gradient(self, dv):
+        gradient_dv0 = derivative(self.fitness_gradient_wrapper, dv[0], args=(dv, 0), order=3)
+        gradient_dv1 = derivative(self.fitness_gradient_wrapper, dv[1], args=(dv, 1), order=3)
+        gradient_dv2 = derivative(self.fitness_gradient_wrapper, dv[2], args=(dv, 2), order=3)
+        gradient_dv3 = derivative(self.fitness_gradient_wrapper, dv[3], args=(dv, 3), order=3)
 
+        return [gradient_dv0, gradient_dv1, gradient_dv2, gradient_dv3]

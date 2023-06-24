@@ -15,7 +15,7 @@ def log_sensitivity(x, f, dxdf):
 if __name__ == '__main__':
     # Read objective values from Monte Carlo
     # t_max_arr = np.genfromtxt('./DesignSpace/monte_carlo/objectives_constraints.dat')[:, 1]
-    objective_constraints = np.genfromtxt(hf.external_sim_data_dir + "/DesignSpace/monte_carlo/objectives_constraints.dat").T
+    objective_constraints = np.genfromtxt(hf.external_sim_data_dir + "/DesignSpace/monte_carlo_one_at_a_time/objectives_constraints.dat").T
     t_max_arr = objective_constraints[1]
     # Transform to days
     # t_max_arr = t_max_arr / (24 * 60 * 60)
@@ -108,17 +108,19 @@ if __name__ == '__main__':
                     Line2D([0], [0], color="tab:red", lw=1.5)]
 
 
-    ax1.legend(custom_lines, 
+    ax2.legend(custom_lines, 
                [r'$\Delta V$ impulse in radial direction', 
                 r'$\Delta V$ impulse in along-track direction', 
                 r'$\Delta V$ impulse in cross-track direction', 
                 r'Time of impulse'],
-               loc="upper left")
+               loc="best")
     
     plt.grid()
     plt.tight_layout()
 
     plt.savefig(hf.report_dir + '/Figures/Ch2/LogSensitivity.pdf', bbox_inches='tight')
+    
+    plt.show()
     
     plt.clf()
     plt.cla()
