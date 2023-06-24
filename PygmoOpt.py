@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # BFGS
     # algo = pg.nlopt(solver='lbfgs')
 
-    investigate_settings = True
+    investigate_settings = False
 
     if investigate_settings:
         from itertools import product as combine
