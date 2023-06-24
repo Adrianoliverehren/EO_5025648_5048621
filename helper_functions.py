@@ -17,7 +17,7 @@ from matplotlib import colors
 import matplotlib.animation as animation
 from PIL import Image
 import glob
-from natsort import natsorted
+
 
 def remove_folder_from_path(path : str, no_to_remove=1):
     path = path.replace("\\", "/")
@@ -372,7 +372,7 @@ def create_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, an
 
 
 def make_gif_from_pngs(image_directory):
-    
+    from natsort import natsorted
 
     # List all image files in the directory
     image_files = glob.glob(image_directory + "*.png")  # Change the extension according to your image format

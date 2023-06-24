@@ -14,14 +14,15 @@ if __name__ == '__main__':
     # Inputs
     x_min_lst = [-1, -1, -2, 120]
     x_max_arr = [1, 1, 2, 2 * 24 * 60 ** 2]
-    n_generations = 100
-    pop_size = 128
+    n_generations = 25
+    pop_size = 500
     seed = 42
     BFE = False  # set to True for parallel processing
     # save_dir = './NMS/'
     # save_dir = './GACO/'
-    # save_dir =  './PSO/'
-    save_dir = './DE/'
+    # save_dir = './PSO/'
+    # save_dir = './DE/'
+    save_dir = './BFGS/'
 
     # Pick algorithm
     # Nelder-Mead Simplex
@@ -31,10 +32,13 @@ if __name__ == '__main__':
     # algo = pg.gaco()
 
     # Particle Swarm
-    # algo = pg.pso()
+    # algo = pg.pso_gen()
 
     # Differnetial evolution
-    algo = pg.de()
+    # algo = pg.de()
+
+    # BFGS
+    algo = pg.nlopt(solver='lbfgs')
 
     # Initialize problem
     problem = pg.problem(GEOProblem(x_min_lst, x_max_arr))
