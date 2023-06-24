@@ -217,7 +217,7 @@ if __name__ == "__main__":
     
     gen_algo = GA(get_fitness, bounds, 42)
     gen_algo.evolve_population(
-        50, 120, 4, 0.4, 2, 20, 
+        50, 150, 8, 0.5, 4, 20, 
         path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
     
     

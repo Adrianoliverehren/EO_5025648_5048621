@@ -3,8 +3,8 @@ import numpy as np
 import pickle
 import helper_functions as hf
 from gentic_algo import GA, get_fitness
-
-
+import simulation as sim
+import sys
 
 def plot_evolution_info(generations, path_to_data):
     
@@ -70,7 +70,8 @@ def investigate_gen_algo_investigation(
         best_dv_r.append(generation.gene_pool[best_idx][0])         
         best_dv_s.append(generation.gene_pool[best_idx][1])         
         best_dv_w.append(generation.gene_pool[best_idx][2])         
-        best_t_burn.append(generation.gene_pool[best_idx][3])     
+        best_t_burn.append(generation.gene_pool[best_idx][3])
+        
         
         x_labels.append(str(f"p={p:.2e}"))   
         
@@ -105,8 +106,6 @@ def investigate_gen_algo_investigation(
         
         x_labels.append(str(f"no={no:.2e}"))  
         
-    print(x_labels)
-        
     plt.figure()
     
     plt.plot(x_labels, np.array(t_survive)/(24*60**2))
@@ -121,17 +120,106 @@ def investigate_gen_algo_investigation(
     plt.xticks(rotation = 90)
     plt.tight_layout()
     
+    plt.figure()
+    
+    plt.plot(x_labels, best_fitness)
+    
+    plt.xticks(rotation = 90)
+    plt.tight_layout()
+
+    plt.show()
+    
+    sys.exit()
+
+    # plotting top 3 trajectories
+    
+    
+    best_idx = np.argsort(best_fitness)  
+    
+    lats = []
+    longs = []
+    times = []
+    
+    
+    for id in best_idx[:1]:
+        decision_variable_dic = {'dv': np.array([best_dv_r[id], best_dv_s[id], best_dv_w[id]]), 't_impulse': best_t_burn[id]}        
+        time, lat, long = sim.run_simulation(None, 6*31*24*60**2, decision_variable_dic=decision_variable_dic, 
+                                             return_time_lat_long=True, run_for_mc=False)
+        lats.append(lat)
+        longs.append(long)
+        times.append(np.array(time) / (24*60**2))
+    
+    
+    hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:green", "tab:orange"], keep_in_memory=True)
+    plt.show()
+    
+    hf.create_animated_lat_long_circle_plot(
+        lats, longs, times, 
+        colours=["tab:blue", "tab:green", "tab:orange"], 
+        path_to_save_animation=hf.report_dir + "/Figures/animated_pdf",
+        filetype="pdf")
+    
+    
+    
+    pass
+
+
+def plot_various_optimization_results(
+    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_1"    
+):
+    
+    
+    custom_gen_algo_info = hf.create_dic_drom_json(custom_data_path + "/evolution_info_dic.dat")
+    
+    best_fitness = []
+    t_survive = []
+    period_t = []
+    best_dv_r = []
+    best_dv_s = []
+    best_dv_w = []
+    best_t_burn = []
+    
+    for gen_id in range(custom_gen_algo_info["generations"]):
+        with open(custom_data_path + f"/gen_{gen_id}.pkl", 'rb') as f:
+            generation = pickle.load(f)
+            
+        best_idx = np.argmin(generation.fitness_pool)  
+        best_fitness.append(generation.fitness_pool[best_idx])          
+        t_survive.append(generation.survival_pool[best_idx]/(24*60**2))          
+        period_t.append(generation.constraint_pool[best_idx])          
+        best_dv_r.append(generation.gene_pool[best_idx][0])         
+        best_dv_s.append(generation.gene_pool[best_idx][1])         
+        best_dv_w.append(generation.gene_pool[best_idx][2])         
+        best_t_burn.append(generation.gene_pool[best_idx][3])
+    
+    
+    hf.plot_arrays(
+        range(custom_gen_algo_info["generations"]),
+        [best_fitness],
+        x_label="Generations [-]",
+        y_label="Best fitness in generation [s]",
+        keep_in_memory=True)
+    
+    hf.plot_arrays(
+        range(custom_gen_algo_info["generations"]),
+        [t_survive],
+        x_label="Generations [-]",
+        y_label="Survival time for fittest in generation [days]",
+        keep_in_memory=True)
+    
+    
     plt.show()
     
     
     pass
 
 
-
 if __name__ == "__main__":
     
-    # plot_evolution_info(80, hf.external_sim_data_dir + "/custom_genetic_algo/breeding_parents_investigation/value=12")
+    plot_evolution_info(120, hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
     
-    investigate_gen_algo_investigation()
+    # investigate_gen_algo_investigation()
+    
+    plot_various_optimization_results()
     
     pass

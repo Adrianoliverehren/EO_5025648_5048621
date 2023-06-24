@@ -94,6 +94,7 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0,
     run_for_mc=True,
+    return_time_lat_long=False
 ):
     empty_body_settings = get_empty_body_settings()
     
@@ -249,7 +250,13 @@ def run_simulation(
         return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
                         hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'], stacked_dep_vars_history)]
         
-
+    if return_time_lat_long:
+        time = np.array(list(stacked_dep_vars_history.keys()))
+        lat = np.array(list(stacked_dep_vars_history.values())).T[5]
+        long = np.array(list(stacked_dep_vars_history.values())).T[6]
+        
+        return time, lat, long
+        
 
 if __name__ == "__main__":
     
