@@ -31,7 +31,7 @@ class GEOProblem:
             penalty = 0
         objective = -unpenalized_objective + penalty
 
-        return objective
+        return [objective]
 
     def batch_fitness(self, design_parameter_vectors):
         len_single_vector = 4
