@@ -67,11 +67,11 @@ if __name__ == '__main__':
     n_generations = 65
     pop_size = 128
     seed = 42
-    BFE = True  # set to True for parallel processing
+    BFE = False  # set to True for parallel processing
     # save_dir = './NMS/'
     # save_dir = './GACO/'
     # save_dir = './PSO/'
-    # save_dir = './DE/'
+    save_dir = './DE_tuned/'
     # save_dir = './BFGS/'
 
     # Pick algorithm
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     # algo = pg.pso()
 
     # Differential evolution    -> needs 65 evols
-    # algo = pg.de()  # 3 settings, F=float (weight coeff), CR=float (crossover prob), variant=int (mutation variant)
+    algo = pg.de(F=0.4, CR=1.0)  # 3 settings, F=float (weight coeff), CR=float (crossover prob), variant=int (mutation variant)
 
     # BFGS
     # algo = pg.nlopt(solver='lbfgs')
