@@ -403,7 +403,6 @@ def create_integrator_analysis_plots(input_lst, path_to_save_plots, regen_data=T
                     label_points=label_points, keep_in_memory=True, markings=True)
         plt.show()   
 
-
 def plot_error_for_single_integrator(integrator_path, plot_save_path, plot_name):
     
     error_states = np.genfromtxt(integrator_path + "/state_errors.dat").T   
