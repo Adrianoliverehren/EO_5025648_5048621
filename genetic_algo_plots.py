@@ -44,6 +44,8 @@ def plot_evolution_info(generations, path_to_data):
 
 
 
+
+
 if __name__ == "__main__":
     
     plot_evolution_info(80, hf.sim_data_dir + "/custom_genetic_algo/test_run2")
