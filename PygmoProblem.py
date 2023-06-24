@@ -38,14 +38,14 @@ class GEOProblem:
         # Reshape from 1xn*m to mxn
         dpv_lst = design_parameter_vectors.reshape(len(design_parameter_vectors) // len_single_vector, len_single_vector)
 
-        inputs, fitnesses = [], []
         with mp.get_context("spawn").Pool(self.n_cores) as pool:
-            outputs = pool.map(self.fitness, inputs)
+            outputs = pool.map(self.fitness, dpv_lst)
 
+        fitnesses = []
         for output in outputs:
             fitnesses.append(output)
 
-        return fitnesses
+        return np.array(fitnesses).flatten()
 
 
 

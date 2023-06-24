@@ -86,7 +86,7 @@ class GA:
         self.select_best_mates(no_mates)
         
         # breed        
-        fuck_list = list(itertools.combinations_with_replacement(np.arange(0, 5), 2))
+        fuck_list = list(itertools.combinations_with_replacement(np.arange(0, no_mates), 2))
         fuck_list = [c for c in fuck_list if c[0] != c[1]]
         frac = no_children / len(fuck_list)
         fuck_list = fuck_list * math.ceil(frac)
@@ -188,6 +188,8 @@ class GA:
 
 def investigate_different_ga_settings(mp_nodes):
     
+    bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
+    
     gen_algo = GA(get_fitness, bounds, 42)
     for mutation_probability in np.linspace(0.01, 0.9, 20):
         gen_algo.evolve_population(
@@ -196,13 +198,13 @@ def investigate_different_ga_settings(mp_nodes):
         
     for breeding_parents in np.arange(2, 14, 2):
         gen_algo.evolve_population(
-            20, 80, breeding_parents, 0.5, 4, mp_nodes, 
+            20, 80, int(breeding_parents), 0.5, 4, mp_nodes, 
             path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/breeding_parents_investigation/value={breeding_parents}")
         
     for no_parent_to_keep in np.arange(2, 10, 2):
         gen_algo.evolve_population(
-            20, 80, 6, 0.5, no_parent_to_keep, mp_nodes, 
-            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/mutation_probability_investigation/value={no_parent_to_keep}")
+            20, 80, 6, 0.5, int(no_parent_to_keep), mp_nodes, 
+            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/no_parent_to_keep_investigation/value={no_parent_to_keep}")
     
     
     pass

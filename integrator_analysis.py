@@ -103,7 +103,8 @@ def gen_benchmarks(mp_nodes=None, rerun_sims=True, path_to_save_plots=hf.root_di
         investigate_integrators(input_lst, mp_nodes)
     
     analyze_benchmarks(step_sizes, path_to_save_plots)
-    
+
+
 def analyze_benchmarks(step_sizes, path_to_save_plots):
     
     time_in_days_lst = []
@@ -138,11 +139,13 @@ def analyze_benchmarks(step_sizes, path_to_save_plots):
                 y_label="Position error [m]", legend=legend, path_to_save=path_to_save_plots + "/benchmark_error_vs_time.pdf",
                 y_log=True, plot_size=[4,4])
 
+
 def run_sim_for_integrator_analysis(path_to_save_data, integrator_settings_dic):
     sim.run_simulation(path_to_save_data, maximum_duration=6*31*24*60**2, 
                     termination_latitude=np.deg2rad(500), termination_longitude=np.deg2rad(500), 
                     integrator_settings_dic=integrator_settings_dic, decision_variable_dic=sample_decision_variable_dic,
                     max_cpu_time=max_time)
+
 
 def get_integrator_investigation_input_list(
     fixed_multistep = False,
@@ -222,6 +225,7 @@ def get_integrator_investigation_input_list(
                         
     return input_list
 
+
 def investigate_integrators(
     input_list,
     mp_nodes=None
@@ -241,7 +245,8 @@ def investigate_integrators(
             _ = run_sim_for_integrator_analysis(*input)
             i += 1
             print(f"{i} / {len(input_list)} completed")
-            
+
+
 def compare_integrators_with_mp(
     old_input_list,
     mp_nodes=None
@@ -271,11 +276,13 @@ def compare_integrators_with_mp(
             i += 1
             print(f"{i} / {len(input_list)} completed")
 
+
 def remove_path_prefix(path, prefix):
     if path.startswith(prefix):
         return os.path.relpath(path, prefix)
     else:
         return path
+
 
 def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, bench_end_t):
     
@@ -338,7 +345,8 @@ def compare_integrator_to_benchmark(folder_path, bench_num_states_interpolator, 
             
             
         hf.save_dict_to_json(integrator_eval_dict, folder_path + "/integrator_eval_dict.dat")
-        
+
+
 def create_integrator_analysis_plots(input_lst, path_to_save_plots, regen_data=True, show_all_integrators=False):
         
     scatter_plot_data = [[],[]]
@@ -428,7 +436,7 @@ def plot_error_for_single_integrator(integrator_path, plot_save_path, plot_name)
 
 
 if __name__ == "__main__":
-        
+
     # print(hf.report_dir )
         
     # gen_benchmarks(mp_nodes=15, rerun_sims=False, path_to_save_plots=hf.report_dir + "/Figures/Ch2")
