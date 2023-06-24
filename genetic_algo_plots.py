@@ -127,9 +127,7 @@ def investigate_gen_algo_investigation(
     plt.xticks(rotation = 90)
     plt.tight_layout()
 
-    plt.show()
-    
-    sys.exit()
+    plt.close()
 
     # plotting top 3 trajectories
     
@@ -148,16 +146,26 @@ def investigate_gen_algo_investigation(
         lats.append(lat)
         longs.append(long)
         times.append(np.array(time) / (24*60**2))
+        
+        
+    decision_variable_dic = {'dv': np.array([best_dv_r[id], best_dv_s[id], best_dv_w[id]]), 't_impulse': np.inf}        
+    time, lat, long = sim.run_simulation(None, 6*31*24*60**2, decision_variable_dic=decision_variable_dic, 
+                                            return_time_lat_long=True, run_for_mc=False)
+    lats.append(lat)
+    longs.append(long)
+    times.append(np.array(time) / (24*60**2))
     
     
-    hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:green", "tab:orange"], keep_in_memory=True)
+    hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:green", "tab:orange"], keep_in_memory=True,
+                                   legend= ["W/o impulse", "Optimized"])
     plt.show()
     
     hf.create_animated_lat_long_circle_plot(
         lats, longs, times, 
         colours=["tab:blue", "tab:green", "tab:orange"], 
         path_to_save_animation=hf.report_dir + "/Figures/animated_pdf",
-        filetype="pdf")
+        filetype="pdf",
+        legend= ["W/o impulse", "Optimized"])
     
     
     
@@ -165,11 +173,26 @@ def investigate_gen_algo_investigation(
 
 
 def plot_various_optimization_results(
-    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_1"    
+    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_2",
+    other_data = [hf.external_sim_data_dir + "/optimization_results/best_of_DE.pkl",
+                  hf.external_sim_data_dir + "/optimization_results/best_of_GACO.pkl",
+                  hf.external_sim_data_dir + "/optimization_results/best_of_PSO.pkl"]  
 ):
     
     
     custom_gen_algo_info = hf.create_dic_drom_json(custom_data_path + "/evolution_info_dic.dat")
+    
+    
+    custom_legend = ["Custom GA", "DE", "GACO", "PSO"]
+    
+    fitness_to_plot = []
+    gens_to_plot = []
+    t_survive_to_plot = []
+    period_t_to_plot = []
+    best_dv_r_to_plot = []
+    best_dv_s_to_plot = []
+    best_dv_w_to_plot = []
+    best_t_burn_to_plot = []
     
     best_fitness = []
     t_survive = []
@@ -191,21 +214,79 @@ def plot_various_optimization_results(
         best_dv_s.append(generation.gene_pool[best_idx][1])         
         best_dv_w.append(generation.gene_pool[best_idx][2])         
         best_t_burn.append(generation.gene_pool[best_idx][3])
+        
+        
+    fitness_to_plot.append(best_fitness)
+    gens_to_plot.append(np.arange(0, custom_gen_algo_info["generations"]))
+    t_survive_to_plot.append(t_survive)
+    period_t_to_plot.append(period_t)
+    best_dv_r_to_plot.append(best_dv_r)
+    best_dv_s_to_plot.append(best_dv_s)
+    best_dv_w_to_plot.append(best_dv_w)
+    best_t_burn_to_plot.append(best_t_burn)
+        
+    for stock_optimizer_results in other_data:
+        with open(stock_optimizer_results, 'rb') as f:
+            [fitness_lst, t_survive_lst, constraint_lst, x_lst, generation_lst] = pickle.load(f)
+            
+            # fitness_lst = [f[0] for f in fitness_lst]
+            
+            
+            x_lst = np.array(x_lst).T
+            
+            fitness_to_plot.append(fitness_lst)
+            gens_to_plot.append(generation_lst)
+            period_t_to_plot.append(constraint_lst)
+            t_survive_to_plot.append(np.array(t_survive_lst)/(24*60**2))
+            best_dv_r_to_plot.append(x_lst[0])
+            best_dv_s_to_plot.append(x_lst[1])
+            best_dv_w_to_plot.append(x_lst[2])
+            best_t_burn_to_plot.append(x_lst[3])
+        
+    lats, longs, times = [], [], []
+        
+    for i, fitness in enumerate(fitness_to_plot):
+        
+        best_id = np.argmin(fitness) 
+        
+        print(best_id)
+       
+        decision_variable_dic = {'dv': np.array([best_dv_r_to_plot[i][best_id], best_dv_s_to_plot[i][best_id], best_dv_w_to_plot[i][best_id]]), 't_impulse': best_t_burn_to_plot[i][best_id]}        
+        time, lat, long = sim.run_simulation(None, 6*31*24*60**2, decision_variable_dic=decision_variable_dic, 
+                                             return_time_lat_long=True, run_for_mc=False)
+        lats.append(lat)
+        longs.append(long)
+        times.append(np.array(time) / (24*60**2))
     
+    
+    hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:orange", "tab:green", "tab:red"], keep_in_memory=True)
+        
+        
+        
     
     hf.plot_arrays(
-        range(custom_gen_algo_info["generations"]),
-        [best_fitness],
+        gens_to_plot,
+        fitness_to_plot,
         x_label="Generations [-]",
         y_label="Best fitness in generation [s]",
-        keep_in_memory=True)
+        keep_in_memory=True,
+        legend=custom_legend)
     
     hf.plot_arrays(
-        range(custom_gen_algo_info["generations"]),
-        [t_survive],
+        gens_to_plot,
+        t_survive_to_plot,
         x_label="Generations [-]",
         y_label="Survival time for fittest in generation [days]",
-        keep_in_memory=True)
+        keep_in_memory=True,
+        legend=custom_legend)
+    
+    hf.plot_arrays(
+        gens_to_plot,
+        period_t_to_plot,
+        x_label="Generations [-]",
+        y_label="dTTTTTTTTTTTTTTTT",
+        keep_in_memory=True,
+        legend=custom_legend)
     
     
     plt.show()
@@ -218,8 +299,8 @@ if __name__ == "__main__":
     
     # plot_evolution_info(80, hf.external_sim_data_dir + "/custom_genetic_algo/breeding_parents_investigation/value=12")
     
-    # investigate_gen_algo_investigation()
+    investigate_gen_algo_investigation()
     
-    plot_various_optimization_results()
+    # plot_various_optimization_results()
     
     pass
