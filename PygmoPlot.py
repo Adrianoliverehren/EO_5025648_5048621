@@ -5,17 +5,19 @@ import matplotlib.pyplot as plt
 import pygmo as pg
 import numpy as np
 from simulation import run_simulation
+import helper_functions as hf
 
 
 if __name__ == '__main__':
-    read_dir = './PSO/'
-    save_dir = './Figures/Pygmo/PSO/'
+    read_dir = './GACO/'
+    save_dir = './Figures/Pygmo/GACO/'
+    hf.make_ALL_folders_for_path(save_dir + 'hello')
 
     all_generations = []
     # For every generation read the population object
     for gen_idx in range(len(os.listdir(read_dir))):
         current_subdir = read_dir + f'gen_{gen_idx}/'
-        with open(read_dir + 'population.pkl', 'rb') as f:
+        with open(current_subdir + 'population.pkl', 'rb') as f:
             current_population = pickle.load(f)
         all_generations.append(current_population)
 
@@ -34,7 +36,6 @@ if __name__ == '__main__':
 
         ax1.set_xlabel('Generation [-]')
         ax1.set_ylabel('Best Fitness [days]')
-        ax1.legend()
         ax1.grid()
         plt.tight_layout()
         plt.savefig(save_dir + 'fitness_v_gen.pdf', bbox_inches='tight')
@@ -64,7 +65,6 @@ if __name__ == '__main__':
 
         ax1.set_xlabel('Generation [-]')
         ax1.set_ylabel('Best Surival time [days]')
-        ax1.legend()
         ax1.grid()
         plt.tight_layout()
         plt.savefig(save_dir + 't_survive_v_gen.pdf', bbox_inches='tight')
