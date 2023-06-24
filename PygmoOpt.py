@@ -10,38 +10,9 @@ import os
 from PygmoProblem import GEOProblem
 from helper_functions import make_ALL_folders_for_path
 
-if __name__ == '__main__':
-    # Inputs
-    x_min_lst = [-1, -1, -2, 120]
-    x_max_arr = [1, 1, 2, 2 * 24 * 60 ** 2]
-    n_generations = 25
-    pop_size = 500
-    seed = 42
-    BFE = False  # set to True for parallel processing
-    # save_dir = './NMS/'
-    # save_dir = './GACO/'
-    # save_dir = './PSO/'
-    # save_dir = './DE/'
-    save_dir = './BFGS/'
-
-    # Pick algorithm
-    # Nelder-Mead Simplex
-    # algo = pg.nlopt(solver="neldermead")
-
-    # Extended ant colony
-    # algo = pg.gaco()
-
-    # Particle Swarm
-    # algo = pg.pso_gen()
-
-    # Differnetial evolution
-    # algo = pg.de()
-
-    # BFGS
-    algo = pg.nlopt(solver='lbfgs')
-
+def optimize(save_dir, algo, xmin, xmax, n_generations, pop_size, seed=42, BFE=False):
     # Initialize problem
-    problem = pg.problem(GEOProblem(x_min_lst, x_max_arr))
+    problem = pg.problem(GEOProblem(xmin, xmax))
 
     # Turn on parallel processing and create algorithm obj
     if BFE:
@@ -88,3 +59,54 @@ if __name__ == '__main__':
             pickle.dump(pop, outp, pickle.HIGHEST_PROTOCOL)
 
 
+if __name__ == '__main__':
+    # Inputs
+    x_min_lst = [-1, -1, -2, 120]
+    x_max_lst = [1, 1, 2, 2 * 24 * 60 ** 2]
+    n_generations = 65
+    pop_size = 128
+    seed = 42
+    BFE = True  # set to True for parallel processing
+    # save_dir = './NMS/'
+    # save_dir = './GACO/'
+    # save_dir = './PSO/'
+    # save_dir = './DE/'
+    save_dir = './BFGS/'
+
+    # Pick algorithm
+    # Nelder-Mead Simplex
+    # algo = pg.nlopt(solver="neldermead")
+
+    # Extended ant colony   -> needs 40? evols
+    # algo = pg.gaco()
+
+    # Particle Swarm    -> needs 65 evols
+    # algo = pg.pso()
+
+    # Differential evolution    -> needs 65 evols
+    algo = pg.de()  # 3 settings, F=float (weight coeff), CR=float (crossover prob), variant=int (mutation variant)
+
+    # BFGS
+    # algo = pg.nlopt(solver='lbfgs')
+
+    investigate_settings = True
+
+    if investigate_settings:
+        from itertools import product as combine
+
+        n_generations = 65
+        pop_size = 32   # Nominal was 128
+
+        F_range = np.arange(0.4, 1.01, 0.2)
+        CR_range = np.arange(0.4, 1.01, 0.2)
+        algo_setting_lst = [(round(F, 2), round(CR, 2)) for (F, CR) in list(combine(F_range, CR_range))]
+
+        save_dirs = [f'./DE_settings/F_{F}_CR_{CR}/' for (F, CR) in algo_setting_lst]
+
+        for save_dir, algo_setting in zip(save_dirs, algo_setting_lst):
+            print(save_dir, ' Running.....')
+            algo = pg.de(F=algo_setting[0], CR=algo_setting[1])
+            optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42, BFE=False)
+
+    else:
+        optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42, BFE=False)
