@@ -157,7 +157,7 @@ def investigate_gen_algo_investigation(
     
     
     hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:green", "tab:orange"], keep_in_memory=True,
-                                   legend= ["W/o impulse", "Optimized"])
+                                   legend=["Optimized", "W/o impulse"])
     plt.show()
     
     hf.create_animated_lat_long_circle_plot(
@@ -165,7 +165,7 @@ def investigate_gen_algo_investigation(
         colours=["tab:blue", "tab:green", "tab:orange"], 
         path_to_save_animation=hf.report_dir + "/Figures/animated_pdf",
         filetype="pdf",
-        legend= ["W/o impulse", "Optimized"])
+        legend=["Optimized", "W/o impulse"])
     
     
     
@@ -259,11 +259,7 @@ def plot_various_optimization_results(
         longs.append(long)
         times.append(np.array(time) / (24*60**2))
     
-    
     hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:orange", "tab:green", "tab:red"], keep_in_memory=True)
-        
-        
-        
     
     hf.plot_arrays(
         gens_to_plot,
@@ -305,10 +301,6 @@ if __name__ == "__main__":
     
     # investigate_gen_algo_investigation()
     
-    plot_various_optimization_results(custom_data_path=None, other_data=[
-        "./OutputStuff/best_of_DE.pkl",
-        "./OutputStuff/best_of_GACO.pkl",
-        "./OutputStuff/best_of_PSO.pkl"
-    ])
+    plot_various_optimization_results()
     
     pass
