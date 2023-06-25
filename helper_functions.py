@@ -34,6 +34,7 @@ sim_data_dir = os.path.dirname(__file__) + "/SimulationData"
 plots_dir = os.path.dirname(__file__) + "/SimulationData/plots/"
 external_sim_data_dir = remove_folder_from_path(os.path.dirname(__file__), 1) + "/SimulationData"
 
+
 def plot_arrays(
     x_arrays, y_arrays, path_to_save=False, title=None, x_label=None, y_label=None, scale_factor=None,
     legend=None, grid=True, x_log=False, linestyles=None, linewiths=None, plot_size=[4,4], colors=None, x_lim=None, legend_pos=None,
@@ -184,6 +185,7 @@ def plot_arrays(
     if keep_in_memory == False:
         plt.close()
 
+
 def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=None, x_label=None, y_label=None,
     grid=True, x_log=False, y_log=False, plot_size=[4,4], additional_save_path=None, keep_in_memory=False, 
     normalize_colourbar=None, z_label=None, filter_ids=None, marker_size=30, **kwargs):
@@ -286,6 +288,7 @@ def plot_heatmap_scatter(x_array, y_array, z_array, path_to_save=False, title=No
     if keep_in_memory == False:
         plt.close()
 
+
 def create_lat_long_circle_plot(
     lat_arrays, long_arrays, time_array, colours, animate="no", path_to_save=None, keep_in_memory=False,
     legend=None):
@@ -387,6 +390,7 @@ def create_lat_long_circle_plot(
     
     pass
 
+
 def make_gif_from_pngs(image_directory):
     from natsort import natsorted
 
@@ -411,6 +415,7 @@ def make_gif_from_pngs(image_directory):
     # Use the save method of the first image, and pass the other images as frames
     images[0].save(image_directory + output_file, save_all=True, append_images=images[1:], duration=200, loop=0)
 
+
 def create_animated_lat_long_circle_plot(lat_arrays, long_arrays, time_array, colours, path_to_save_animation, filetype="png", legend=None):
     
     i = 0
@@ -423,6 +428,7 @@ def create_animated_lat_long_circle_plot(lat_arrays, long_arrays, time_array, co
         i+=1
     
     pass
+
 
 def plot_heatmap_scatter_multi_decision_vars(x_arrays, y_arrays, z_arrays, markers, path_to_save=False, title=None, x_label=None, y_label=None,
     grid=True, x_log=False, y_log=False, plot_size=[4,4], additional_save_path=None, keep_in_memory=False, 
@@ -539,6 +545,7 @@ def plot_heatmap_scatter_multi_decision_vars(x_arrays, y_arrays, z_arrays, marke
     if keep_in_memory == False:
         plt.close()
 
+
 def plot_lat_long(longitude, latitude, linewiths=None, colors=None, keep_in_memory=False, 
                   path_to_save=False, additional_save_path=None):
     
@@ -588,6 +595,7 @@ def plot_lat_long(longitude, latitude, linewiths=None, colors=None, keep_in_memo
     
     pass
 
+
 def create_dictionary_from_savefile(filepath):
     
     data = np.genfromtxt(filepath)
@@ -598,10 +606,12 @@ def create_dictionary_from_savefile(filepath):
 
     return dic
 
+
 def create_dic_drom_json(filepath):
     with open(filepath) as json_file:
         return json.load(json_file)
-    
+
+
 def save_dependent_variable_info(dictionary, filename):
     # Open the text file in write mode
     with open(filename, "w") as file:
@@ -609,6 +619,7 @@ def save_dependent_variable_info(dictionary, filename):
         for key, value in dictionary.items():
             # Write each item to a new row in the text file
             file.write(f"{key}: {value}\n")   
+
 
 def make_dic_safe_for_json(dictionary):
     safe_dic = {}
@@ -619,25 +630,30 @@ def make_dic_safe_for_json(dictionary):
             value = value.tolist()
         safe_dic[str(key)] = value
     return safe_dic
-    
+
+
 def save_dict_to_json(data, filename):
     path = pathlib.Path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(filename, 'w') as file:
         json.dump(data, file, indent=4, separators=(',', ': '))
-        
+
+
 def save_dynamics_simulator_to_files(output_path, stacked_state_history, stacked_dep_vars_history):
         save2txt(stacked_state_history, 'state_history.dat', output_path)
         save2txt(stacked_dep_vars_history, 'dependent_variable_history.dat', output_path)
 
+
 def constraint():
     return 7.589381 * (10**(-4)) # 32 / semi-major axis
+
 
 def make_ALL_folders_for_path(filepath):
     path = pathlib.Path(filepath)
     path.parent.mkdir(parents=True, exist_ok=True)   
-    
+
+
 def calculate_obj(dependent_var_history, sim_idx="n/a"):
     for t in dependent_var_history.keys():
         current_dep_vars = dependent_var_history[t]
@@ -648,6 +664,7 @@ def calculate_obj(dependent_var_history, sim_idx="n/a"):
     # If condition was never violated
     warnings.warn(f'Simulation #{sim_idx} never exceeded position constraint, returned final time')
     return list(dependent_var_history.keys())[-1]
+
 
 def period_change(state_history, t_impulse, dependent_var_history):
     t_arr = np.array(list(state_history.keys()))
@@ -742,9 +759,12 @@ if __name__ == "__main__":
     # make_gif_from_pngs(external_sim_data_dir + "/custom_genetic_algo/animation/")
     
     
-    decision_variables_array = [1.805939286221408535e-01, -3.988201153640763552e-02, -1.168958567696266604e+00, 1.437789485693128081e+05]
+    # decision_variables_array = [1.805939286221408535e-01, -3.988201153640763552e-02, -1.168958567696266604e+00, 1.437789485693128081e+05]
     
-    make_spiral_plot_for_decision_variables(decision_variables_array, report_dir + "/Figures/Ch5/pygmo_optimal_spiral.pdf", report_dir + "/Figures/Ch5/pygmo_optimal_animated", plot_unoptimized=True)
+    # make_spiral_plot_for_decision_variables(decision_variables_array, report_dir + "/Figures/Ch5/pygmo_optimal_spiral.pdf", report_dir + "/Figures/Ch5/pygmo_optimal_animated", plot_unoptimized=True)
+ 
     
     
     # print(np.rad2deg(constraint()))
+    
+    pass

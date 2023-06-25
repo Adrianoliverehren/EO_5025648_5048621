@@ -17,9 +17,10 @@ for m in m_lst:
 
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.qmc.discrepancy.html
+plt.figure(figsize=(4, 4))
 plt.plot(m_lst, discrepancy_list, label='1D Sobol Sample')
-plt.ylabel('Sobol Distribution Discrepancy [-]', fontsize=16)
-plt.xlabel(r'Base 2 logarithm of number of samples [-]', fontsize=16)
+plt.ylabel('Sobol Distribution Discrepancy [-]')
+plt.xlabel(r'Base 2 logarithm of number of samples [-]')
 
 
 random_seed = 42
@@ -36,8 +37,8 @@ for m in m_lst:
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.qmc.discrepancy.html
 plt.plot(m_lst, discrepancy_list, label='4D Sobol Sample')
-plt.xticks(fontsize=16)
-plt.yticks(fontsize=16)
+plt.xticks()
+plt.yticks()
 plt.legend()
 plt.tight_layout()
 plt.grid()
