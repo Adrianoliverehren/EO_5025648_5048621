@@ -6,10 +6,11 @@ from scipy.misc import derivative
 
 
 class GEOProblem:
-    def __init__(self, xmin_arr, xmax_arr):
+    def __init__(self, xmin_arr, xmax_arr, spherical_harmonics=(10, 10)):
         self.xmin_arr = xmin_arr
         self.xmax_arr = xmax_arr
         self.n_cores = mp.cpu_count() - 2
+        self.spherical_harmonics = spherical_harmonics
 
     def get_bounds(self):
         bounds = (self.xmin_arr, self.xmax_arr)
@@ -18,13 +19,13 @@ class GEOProblem:
     def get_nobj(self):
         return 1
 
-    @staticmethod
-    def fitness(design_parameters):
+    def fitness(self, design_parameters):
         decision_var_dict = {'dv': np.array([design_parameters[0], design_parameters[1], design_parameters[2]]),
                              't_impulse': design_parameters[3]}
 
         _, [unpenalized_objective, constraint] = run_simulation(False, 6 * 31 * 24 * 60 ** 2,
-                                                                decision_variable_dic=decision_var_dict)
+                                                                decision_variable_dic=decision_var_dict,
+                                                                spherical_harmonics=self.spherical_harmonics)
 
         if constraint > 0:
             penalty = constraint ** 2 * 10 ** 6

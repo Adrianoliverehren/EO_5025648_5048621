@@ -92,10 +92,10 @@ def get_integrator_settings(integrator_settings_dic):
     return integrator_settings
 
 
-def get_acceleration_settings(bodies):
+def get_acceleration_settings(bodies, spherical_harmonics):
     acceleration_settings_on_vehicle = {
         # "Earth": [propagation_setup.acceleration.point_mass_gravity()],
-        "Earth": [propagation_setup.acceleration.spherical_harmonic_gravity(10, 10)],
+        "Earth": [propagation_setup.acceleration.spherical_harmonic_gravity(spherical_harmonics[0], spherical_harmonics[1])],
         "Moon": [propagation_setup.acceleration.point_mass_gravity()],
         "Sun": [propagation_setup.acceleration.point_mass_gravity()],
     }
