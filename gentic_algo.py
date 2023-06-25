@@ -31,7 +31,7 @@ def get_fitness_fixed_t_impulse(decision_var_arr):
     """Wraps simulation function to allow for input and output format necessary for scipy optimization algorithms"""
 
     decision_var_dict = {'dv': np.array([decision_var_arr[0], decision_var_arr[1], decision_var_arr[2]]),
-                         't_impulse': decision_var_arr[3]}
+                         't_impulse': 1.2*24*60**2}
 
     _, [unpenalized_objective, constraint] = sim.run_simulation(False, 6 * 31 * 24 * 60**2,
                                                                 decision_variable_dic=decision_var_dict)
@@ -230,16 +230,26 @@ def investigate_different_ga_settings(mp_nodes):
     
     pass
     
-# def run_algo_with_
+def run_algo_with_3_decison_vars():
+    
+    bounds = [(-1, 1), (-1, 1), (-2, 2)]
+    
+    gen_algo = GA(get_fitness_fixed_t_impulse, bounds, 42)
+    gen_algo.evolve_population(
+        50, 150, 16, 0.5, 4, 20, 
+        path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars")
+    
         
 if __name__ == "__main__":
     
-    bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
+    # bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
     
-    gen_algo = GA(get_fitness, bounds, 42)
-    gen_algo.evolve_population(
-        50, 150, 8, 0.5, 4, 20, 
-        path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_4")
+    # gen_algo = GA(get_fitness, bounds, 42)
+    # gen_algo.evolve_population(
+    #     50, 150, 8, 0.5, 4, 20, 
+    #     path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_4")
+    
+    run_algo_with_3_decison_vars()
     
     
     # investigate_different_ga_settings(20)

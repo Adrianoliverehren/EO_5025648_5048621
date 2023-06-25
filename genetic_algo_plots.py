@@ -259,7 +259,6 @@ def plot_various_optimization_results(
         longs.append(long)
         times.append(np.array(time) / (24*60**2))
     
-    
     hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:orange", "tab:green", "tab:red"], keep_in_memory=True)
     
     hf.plot_arrays(
