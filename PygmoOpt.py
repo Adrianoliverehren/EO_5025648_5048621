@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # save_dir = './PSO/'
     # save_dir = './DE_tuned/'
     # save_dir = './BFGS/'
-    save_dir = './Trash'
+    save_dir = './Trash/'
 
     # Pick algorithm
     # Nelder-Mead Simplex

@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                 (20, 20),
                                 (40, 40)]
     if run:
-        save_dirs = [f'./EnvironmentInv/{harmonics_to_investigate[0]}/']
+        save_dirs = [f'./EnvironmentInv/{harmonic}/' for harmonic in harmonics_to_investigate]
         n_generations = 64
         pop_size = 32
         algo = pg.de()
@@ -61,9 +61,10 @@ if __name__ == '__main__':
         x_min_lst = [-1, -1, -2, 120]
         x_max_lst = [1, 1, 2, 2 * 24 * 60 ** 2]
 
-        for harmonics, save_dir in zip(harmonics_to_investigate, save_dirs):
-            optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42,
-                     BFE=False, spherical_harmonics=harmonics)
+    for harmonics, save_dir in zip(harmonics_to_investigate, save_dirs):
+        print(harmonics, ' Running...')
+        optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42,
+                 BFE=False, spherical_harmonics=harmonics)
 
     if plot:
         # Get best design from each environment setting
@@ -101,4 +102,3 @@ if __name__ == '__main__':
 
         # Plot optimal designs
         env_design_domain(champ_x_dict, plot_dir)
-

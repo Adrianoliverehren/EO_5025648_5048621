@@ -18,7 +18,7 @@ import matplotlib.animation as animation
 from PIL import Image
 import glob
 from matplotlib.lines import Line2D
-
+import simulation as sim
 
 def remove_folder_from_path(path : str, no_to_remove=1):
     path = path.replace("\\", "/")
@@ -316,7 +316,7 @@ def create_lat_long_circle_plot(
     for lat, long in zip(lat_arrays, long_arrays):
         long_list += list(lat)
         long_list += list(long)
-    
+        
     maxmax = max(np.abs(long_list))*1.1* np.rad2deg(1)
     minmin = -maxmax
         
@@ -403,8 +403,6 @@ def make_gif_from_pngs(image_directory):
 
     # Create an empty list to store the images
     images = []
-    
-    print(image_files)
 
     # Open and append each image to the list
     for filename in image_files:
@@ -701,9 +699,69 @@ def period_change(state_history, t_impulse, dependent_var_history):
     return abs(T_after - T_initial) - abs(T_prior - T_initial)        # max(abs(dT_arr))
 
 
+def make_spiral_plot_for_decision_variables(decision_variables_array, path_to_save_normal, path_to_save_animation, plot_unoptimized=True):
+    
+    
+    decision_var_dict = {'dv': np.array([decision_variables_array[0], decision_variables_array[1], decision_variables_array[2]]),
+                         't_impulse': decision_variables_array[3]}
+    
+    lats, longs, times = [], [], []
+        
+    t, lat, long = sim.run_simulation(None, 6*31*24*60**2, decision_var_dict, run_for_mc=False, return_time_lat_long=True)
+       
+    lats.append(lat)
+    longs.append(long)
+    times.append(np.array(t) / (24*60**2))
+    
+    legend = None
+    
+    cols = ["tab:blue"]
+    
+    if plot_unoptimized:
+    
+        cols.append("tab:orange")
+    
+        legend = ["Optimized", "Unoptimized"]
+    
+        decision_var_dict = {'dv': np.array([decision_variables_array[0], decision_variables_array[1], decision_variables_array[2]]),
+                            't_impulse': 6*31*24*60**2}
+        t, lat, long = sim.run_simulation(None, 6*31*24*60**2, decision_var_dict, run_for_mc=False, return_time_lat_long=True)
+        lats.append(lat)
+        longs.append(long)
+        times.append(np.array(t) / (24*60**2))
+
+    
+    
+    create_lat_long_circle_plot(lats, longs, times, colours=cols, legend=legend, path_to_save=path_to_save_normal)
+    
+    if path_to_save_animation:
+        create_animated_lat_long_circle_plot(lats, longs, times, colours=cols, legend=legend, path_to_save_animation=path_to_save_animation, filetype="pdf")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
 if __name__ == "__main__":
     
     
-    make_gif_from_pngs(external_sim_data_dir + "/custom_genetic_algo/animation/")
+    
+    
+    
+    # make_gif_from_pngs(external_sim_data_dir + "/custom_genetic_algo/animation/")
+    
+    
+    decision_variables_array = [1.805939286221408535e-01, -3.988201153640763552e-02, -1.168958567696266604e+00, 1.437789485693128081e+05]
+    
+    make_spiral_plot_for_decision_variables(decision_variables_array, report_dir + "/Figures/Ch5/pygmo_optimal_spiral.pdf", report_dir + "/Figures/Ch5/pygmo_optimal_animated", plot_unoptimized=True)
+    
     
     # print(np.rad2deg(constraint()))
