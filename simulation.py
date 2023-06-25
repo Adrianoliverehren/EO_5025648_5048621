@@ -94,7 +94,8 @@ def run_simulation(
     max_cpu_time=30,
     sim_idx=0,
     run_for_mc=True,
-    return_time_lat_long=False
+    return_time_lat_long=False,
+    spherical_harmonics=(10, 10)
 ):
     empty_body_settings = get_empty_body_settings()
     
@@ -137,7 +138,7 @@ def run_simulation(
         )   
 
     # Get acceleration, integrator and propagator settings
-    acceleration_models = ssf.get_acceleration_settings(bodies)
+    acceleration_models = ssf.get_acceleration_settings(bodies, spherical_harmonics=spherical_harmonics)
     integrator_settings = ssf.get_integrator_settings(integrator_settings_dic)
     
     mu = bodies.get("Earth").gravitational_parameter
