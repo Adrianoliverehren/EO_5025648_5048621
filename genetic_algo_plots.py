@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import helper_functions as hf
-from gentic_algo import GA, get_fitness
+from gentic_algo import GA, get_fitness, get_fitness_fixed_t_impulse
 import simulation as sim
 import sys
 
-def plot_evolution_info(generations, path_to_data):
+def plot_evolution_info(generations, path_to_data, only3vars=False):
     
     best_fitness = []
     t_survive = []
@@ -14,7 +14,8 @@ def plot_evolution_info(generations, path_to_data):
     best_dv_r = []
     best_dv_s = []
     best_dv_w = []
-    best_t_burn = []
+    if not only3vars:
+        best_t_burn = []
     
     
     for gen in range(generations+1):
@@ -28,8 +29,10 @@ def plot_evolution_info(generations, path_to_data):
         period_t.append(generation.constraint_pool[best_idx])          
         best_dv_r.append(generation.gene_pool[best_idx][0])         
         best_dv_s.append(generation.gene_pool[best_idx][1])         
-        best_dv_w.append(generation.gene_pool[best_idx][2])         
-        best_t_burn.append(generation.gene_pool[best_idx][3])        
+        best_dv_w.append(generation.gene_pool[best_idx][2])   
+        
+        if not only3vars:      
+            best_t_burn.append(generation.gene_pool[best_idx][3])        
         
     hf.plot_arrays(np.arange(0, generations+1), [np.array(best_fitness)/(24*60**2)], keep_in_memory=True, y_label="Fitness", x_label="Generations") 
     hf.plot_arrays(np.arange(0, generations+1), [np.array(t_survive)/(24*60**2)], keep_in_memory=True, y_label="Survival time", x_label="Generations") 
@@ -37,7 +40,9 @@ def plot_evolution_info(generations, path_to_data):
     hf.plot_arrays(np.arange(0, generations+1), [best_dv_r], keep_in_memory=True, y_label="dv r", x_label="Generations") 
     hf.plot_arrays(np.arange(0, generations+1), [best_dv_s], keep_in_memory=True, y_label="dv s", x_label="Generations") 
     hf.plot_arrays(np.arange(0, generations+1), [best_dv_w], keep_in_memory=True, y_label="dv w", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [np.array(best_t_burn)/(24*60**2)], keep_in_memory=True, y_label="t burn", x_label="Generations") 
+    
+    if not only3vars:
+        hf.plot_arrays(np.arange(0, generations+1), [np.array(best_t_burn)/(24*60**2)], keep_in_memory=True, y_label="t burn", x_label="Generations") 
     
     plt.show()
 
@@ -295,12 +300,37 @@ def plot_various_optimization_results(
     pass
 
 
+
+def get_best_design_variables(gneration_file_path, t_impulse=None):
+    with open(gneration_file_path, 'rb') as f:
+        generation = pickle.load(f)
+        
+    best_idx = np.argmin(generation.fitness_pool)  
+    # best_fitness = generation.fitness_pool[best_idx]    
+    # t_survive = generation.survival_pool[best_idx]   
+    # period_t = generation.constraint_pool[best_idx]          
+    best_dv_r = generation.gene_pool[best_idx][0]         
+    best_dv_s = generation.gene_pool[best_idx][1]   
+    best_dv_w = generation.gene_pool[best_idx][2]   
+                     
+    if not t_impulse:      
+        t_impulse = generation.gene_pool[best_idx][3]  
+        
+        
+    return np.array([best_dv_r, best_dv_s, best_dv_w, t_impulse])
+         
+
+    
+
+
 if __name__ == "__main__":
     
-    # plot_evolution_info(120, hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_1")
+    plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars", only3vars=True)
+    
+    hf.plo
     
     # investigate_gen_algo_investigation()
     
-    plot_various_optimization_results()
+    # plot_various_optimization_results()
     
     pass
