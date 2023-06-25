@@ -11,9 +11,9 @@ from PygmoProblem import GEOProblem
 from helper_functions import make_ALL_folders_for_path
 
 
-def optimize(save_dir, algo, xmin, xmax, n_generations, pop_size, seed=42, BFE=False):
+def optimize(save_dir, algo, xmin, xmax, n_generations, pop_size, seed=42, BFE=False, spherical_harmonics=(10, 10)):
     # Initialize problem
-    problem = pg.problem(GEOProblem(xmin, xmax))
+    problem = pg.problem(GEOProblem(xmin, xmax, spherical_harmonics=spherical_harmonics))
 
     # Turn on parallel processing and create algorithm obj
     if BFE:
