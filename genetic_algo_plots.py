@@ -288,7 +288,7 @@ def plot_various_optimization_results(
         gens_to_plot,
         period_t_to_plot,
         x_label="Generations [-]",
-        y_label="dTTTTTTTTTTTTTTTT",
+        y_label=r"$\| T_{after} - T_0 \| - \| T_{prior} - T_0 \|$",
         keep_in_memory=True,
         legend=custom_legend,
         path_to_save=path_to_save_plots + '/dTTTTTTT.pdf')
