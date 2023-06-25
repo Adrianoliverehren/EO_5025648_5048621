@@ -173,10 +173,8 @@ def investigate_gen_algo_investigation(
 
 
 def plot_various_optimization_results(
-    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_2",
-    other_data = [hf.external_sim_data_dir + "/optimization_results/best_of_DE.pkl",
-                  hf.external_sim_data_dir + "/optimization_results/best_of_GACO.pkl",
-                  hf.external_sim_data_dir + "/optimization_results/best_of_PSO.pkl"]  ,
+    custom_data_path = hf.sim_data_dir + "/custom_genetic_algo/best_settings/version_4",
+    other_data = []  ,
     custom_legend = ["Custom GA", "DE", "GACO", "PSO"]
 ):
 
@@ -302,10 +300,12 @@ if __name__ == "__main__":
     
     # investigate_gen_algo_investigation()
     
-    plot_various_optimization_results(custom_data_path=None, other_data=[
-        "./OutputStuff/best_of_DE.pkl",
-        "./OutputStuff/best_of_GACO.pkl",
-        "./OutputStuff/best_of_PSO.pkl"
-    ])
+    plot_various_optimization_results()
+    
+    # plot_various_optimization_results(custom_data_path=None, other_data=[
+    #     "./OutputStuff/best_of_DE.pkl",
+    #     "./OutputStuff/best_of_GACO.pkl",
+    #     "./OutputStuff/best_of_PSO.pkl"
+    # ])
     
     pass
