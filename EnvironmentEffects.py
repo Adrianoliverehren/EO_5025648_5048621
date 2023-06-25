@@ -106,7 +106,6 @@ if __name__ == '__main__':
         keys = list(hardcoded_translation.keys())
 
         for env in keys:
-            print(env)
             best_x_of_env = champ_x_dict[env]
             decision_var_dict = {'dv': np.array([best_x_of_env[0], best_x_of_env[1], best_x_of_env[2]]),
                                  't_impulse': best_x_of_env[3]}
@@ -118,6 +117,7 @@ if __name__ == '__main__':
             ax1.bar(env, unpenalized_objective / (24 * 60 ** 2))
 
         ax1.set_ylabel('Best Survival Time [days]')
+        ax1.set_xlabel('Degree and Order of Spherical Harmonics [-]')
         ax1.grid(axis='y')
         ax1.set_xticks(ax1.get_xticks(), ax1.get_xticklabels(), rotation=90)
         plt.tight_layout()
