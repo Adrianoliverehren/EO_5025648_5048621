@@ -17,6 +17,7 @@ from matplotlib import colors
 import matplotlib.animation as animation
 from PIL import Image
 import glob
+from matplotlib.lines import Line2D
 
 
 def remove_folder_from_path(path : str, no_to_remove=1):

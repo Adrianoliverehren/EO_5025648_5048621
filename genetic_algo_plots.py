@@ -157,7 +157,7 @@ def investigate_gen_algo_investigation(
     
     
     hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:green", "tab:orange"], keep_in_memory=True,
-                                   legend= ["W/o impulse", "Optimized"])
+                                   legend=["Optimized", "W/o impulse"])
     plt.show()
     
     hf.create_animated_lat_long_circle_plot(
@@ -165,7 +165,7 @@ def investigate_gen_algo_investigation(
         colours=["tab:blue", "tab:green", "tab:orange"], 
         path_to_save_animation=hf.report_dir + "/Figures/animated_pdf",
         filetype="pdf",
-        legend= ["W/o impulse", "Optimized"])
+        legend=["Optimized", "W/o impulse"])
     
     
     
@@ -173,9 +173,12 @@ def investigate_gen_algo_investigation(
 
 
 def plot_various_optimization_results(
-    custom_data_path = hf.sim_data_dir + "/custom_genetic_algo/best_settings/version_4",
-    other_data = []  ,
-    custom_legend = ["Custom GA", "DE", "GACO", "PSO"]
+    custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_2",
+    other_data = [hf.external_sim_data_dir + "/optimization_results/best_of_DE.pkl",
+                  hf.external_sim_data_dir + "/optimization_results/best_of_GACO.pkl",
+                  hf.external_sim_data_dir + "/optimization_results/best_of_PSO.pkl"]  ,
+    custom_legend = ["Custom GA", "DE", "GACO", "PSO"],
+    path_to_save_plots = hf.report_dir + '/Figures/Ch3'
 ):
 
     fitness_to_plot = []
@@ -256,11 +259,7 @@ def plot_various_optimization_results(
         longs.append(long)
         times.append(np.array(time) / (24*60**2))
     
-    
     hf.create_lat_long_circle_plot(lats, longs, times, colours=["tab:blue", "tab:orange", "tab:green", "tab:red"], keep_in_memory=True)
-        
-        
-        
     
     hf.plot_arrays(
         gens_to_plot,
@@ -268,7 +267,8 @@ def plot_various_optimization_results(
         x_label="Generations [-]",
         y_label="Best fitness in generation [s]",
         keep_in_memory=True,
-        legend=custom_legend)
+        legend=custom_legend,
+        path_to_save=path_to_save_plots + '/BestFitness.pdf')
     
     hf.plot_arrays(
         gens_to_plot,
@@ -276,7 +276,8 @@ def plot_various_optimization_results(
         x_label="Generations [-]",
         y_label="Survival time for fittest in generation [days]",
         keep_in_memory=True,
-        legend=custom_legend)
+        legend=custom_legend,
+        path_to_save=path_to_save_plots + '/SurvivalTime.pdf')
     
     hf.plot_arrays(
         gens_to_plot,
@@ -285,7 +286,7 @@ def plot_various_optimization_results(
         y_label="dTTTTTTTTTTTTTTTT",
         keep_in_memory=True,
         legend=custom_legend,
-        path_to_save=None)
+        path_to_save=path_to_save_plots + '/dTTTTTTT.pdf')
     
     
     plt.show()
@@ -301,11 +302,5 @@ if __name__ == "__main__":
     # investigate_gen_algo_investigation()
     
     plot_various_optimization_results()
-    
-    # plot_various_optimization_results(custom_data_path=None, other_data=[
-    #     "./OutputStuff/best_of_DE.pkl",
-    #     "./OutputStuff/best_of_GACO.pkl",
-    #     "./OutputStuff/best_of_PSO.pkl"
-    # ])
     
     pass

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     from PygmoPlot import save_stuff
     save_stuff('./DE_settings/F_0.4_CR_0.4/', './OutputStuff/', 'F04CR04.pkl')
     save_stuff('./DE_settings/F_0.4_CR_1.0/', './OutputStuff/', 'F04CR10.pkl')
-    save_stuff('./DE_settings/F_0.6_CR_1.4/', './OutputStuff/', 'F06CR10.pkl')
+    save_stuff('./DE_settings/F_0.6_CR_1.0/', './OutputStuff/', 'F06CR10.pkl')
 
     from genetic_algo_plots import plot_various_optimization_results
 
@@ -50,5 +50,6 @@ if __name__ == '__main__':
                                       other_data=["./OutputStuff/F04CR04.pkl",
                                                   "./OutputStuff/F04CR10.pkl",
                                                   "./OutputStuff/F06CR10.pkl"],
-                                      custom_legend=["F=0.4, CR=0.4", "F=0.4, CR=1.0", "F=0.6, CR=1.0"]
+                                      custom_legend=["F=0.4, CR=0.4", "F=0.4, CR=1.0", "F=0.6, CR=1.0"],
+                                      path_to_save_plots='./Figures/DE'
     )
