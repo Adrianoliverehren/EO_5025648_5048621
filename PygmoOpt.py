@@ -10,6 +10,7 @@ import os
 from PygmoProblem import GEOProblem
 from helper_functions import make_ALL_folders_for_path
 
+
 def optimize(save_dir, algo, xmin, xmax, n_generations, pop_size, seed=42, BFE=False):
     # Initialize problem
     problem = pg.problem(GEOProblem(xmin, xmax))
@@ -66,12 +67,12 @@ if __name__ == '__main__':
     n_generations = 65
     pop_size = 128
     seed = 42
-    BFE = True  # set to True for parallel processing
+    BFE = False  # set to True for parallel processing
     # save_dir = './NMS/'
     # save_dir = './GACO/'
     # save_dir = './PSO/'
-    # save_dir = './DE/'
-    save_dir = './BFGS/'
+    save_dir = './DE_tuned/'
+    # save_dir = './BFGS/'
 
     # Pick algorithm
     # Nelder-Mead Simplex
@@ -84,12 +85,12 @@ if __name__ == '__main__':
     # algo = pg.pso()
 
     # Differential evolution    -> needs 65 evols
-    algo = pg.de()  # 3 settings, F=float (weight coeff), CR=float (crossover prob), variant=int (mutation variant)
+    algo = pg.de(F=0.4, CR=1.0)  # 3 settings, F=float (weight coeff), CR=float (crossover prob), variant=int (mutation variant)
 
     # BFGS
     # algo = pg.nlopt(solver='lbfgs')
 
-    investigate_settings = True
+    investigate_settings = False
 
     if investigate_settings:
         from itertools import product as combine
@@ -97,7 +98,7 @@ if __name__ == '__main__':
         n_generations = 65
         pop_size = 32   # Nominal was 128
 
-        F_range = np.arange(0.4, 1.01, 0.2)
+        F_range = np.arange(0.8, 1.01, 0.2)
         CR_range = np.arange(0.4, 1.01, 0.2)
         algo_setting_lst = [(round(F, 2), round(CR, 2)) for (F, CR) in list(combine(F_range, CR_range))]
 
@@ -109,4 +110,4 @@ if __name__ == '__main__':
             optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42, BFE=False)
 
     else:
-        optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42, BFE=False)
+        optimize(save_dir, algo, x_min_lst, x_max_lst, n_generations, pop_size, seed=42, BFE=BFE)

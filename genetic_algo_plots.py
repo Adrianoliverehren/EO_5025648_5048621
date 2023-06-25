@@ -176,15 +176,11 @@ def plot_various_optimization_results(
     custom_data_path = hf.external_sim_data_dir + "/custom_genetic_algo/best_settings/version_2",
     other_data = [hf.external_sim_data_dir + "/optimization_results/best_of_DE.pkl",
                   hf.external_sim_data_dir + "/optimization_results/best_of_GACO.pkl",
-                  hf.external_sim_data_dir + "/optimization_results/best_of_PSO.pkl"]  
+                  hf.external_sim_data_dir + "/optimization_results/best_of_PSO.pkl"]  ,
+    custom_legend = ["Custom GA", "DE", "GACO", "PSO"],
+    path_to_save_plots = hf.report_dir + '/Figures/Ch3'
 ):
-    
-    
-    custom_gen_algo_info = hf.create_dic_drom_json(custom_data_path + "/evolution_info_dic.dat")
-    
-    
-    custom_legend = ["Custom GA", "DE", "GACO", "PSO"]
-    
+
     fitness_to_plot = []
     gens_to_plot = []
     t_survive_to_plot = []
@@ -193,37 +189,42 @@ def plot_various_optimization_results(
     best_dv_s_to_plot = []
     best_dv_w_to_plot = []
     best_t_burn_to_plot = []
+    if custom_data_path:
     
-    best_fitness = []
-    t_survive = []
-    period_t = []
-    best_dv_r = []
-    best_dv_s = []
-    best_dv_w = []
-    best_t_burn = []
-    
-    for gen_id in range(custom_gen_algo_info["generations"]):
-        with open(custom_data_path + f"/gen_{gen_id}.pkl", 'rb') as f:
-            generation = pickle.load(f)
-            
-        best_idx = np.argmin(generation.fitness_pool)  
-        best_fitness.append(generation.fitness_pool[best_idx])          
-        t_survive.append(generation.survival_pool[best_idx]/(24*60**2))          
-        period_t.append(generation.constraint_pool[best_idx])          
-        best_dv_r.append(generation.gene_pool[best_idx][0])         
-        best_dv_s.append(generation.gene_pool[best_idx][1])         
-        best_dv_w.append(generation.gene_pool[best_idx][2])         
-        best_t_burn.append(generation.gene_pool[best_idx][3])
-        
-        
-    fitness_to_plot.append(best_fitness)
-    gens_to_plot.append(np.arange(0, custom_gen_algo_info["generations"]))
-    t_survive_to_plot.append(t_survive)
-    period_t_to_plot.append(period_t)
-    best_dv_r_to_plot.append(best_dv_r)
-    best_dv_s_to_plot.append(best_dv_s)
-    best_dv_w_to_plot.append(best_dv_w)
-    best_t_burn_to_plot.append(best_t_burn)
+        custom_gen_algo_info = hf.create_dic_drom_json(custom_data_path + "/evolution_info_dic.dat")
+
+
+
+        best_fitness = []
+        t_survive = []
+        period_t = []
+        best_dv_r = []
+        best_dv_s = []
+        best_dv_w = []
+        best_t_burn = []
+
+        for gen_id in range(custom_gen_algo_info["generations"]):
+            with open(custom_data_path + f"/gen_{gen_id}.pkl", 'rb') as f:
+                generation = pickle.load(f)
+
+            best_idx = np.argmin(generation.fitness_pool)
+            best_fitness.append(generation.fitness_pool[best_idx])
+            t_survive.append(generation.survival_pool[best_idx]/(24*60**2))
+            period_t.append(generation.constraint_pool[best_idx])
+            best_dv_r.append(generation.gene_pool[best_idx][0])
+            best_dv_s.append(generation.gene_pool[best_idx][1])
+            best_dv_w.append(generation.gene_pool[best_idx][2])
+            best_t_burn.append(generation.gene_pool[best_idx][3])
+
+
+        fitness_to_plot.append(best_fitness)
+        gens_to_plot.append(np.arange(0, custom_gen_algo_info["generations"]))
+        t_survive_to_plot.append(t_survive)
+        period_t_to_plot.append(period_t)
+        best_dv_r_to_plot.append(best_dv_r)
+        best_dv_s_to_plot.append(best_dv_s)
+        best_dv_w_to_plot.append(best_dv_w)
+        best_t_burn_to_plot.append(best_t_burn)
         
     for stock_optimizer_results in other_data:
         with open(stock_optimizer_results, 'rb') as f:
@@ -267,7 +268,8 @@ def plot_various_optimization_results(
         x_label="Generations [-]",
         y_label="Best fitness in generation [s]",
         keep_in_memory=True,
-        legend=custom_legend)
+        legend=custom_legend,
+        path_to_save=path_to_save_plots + '/BestFitness.pdf')
     
     hf.plot_arrays(
         gens_to_plot,
@@ -275,7 +277,8 @@ def plot_various_optimization_results(
         x_label="Generations [-]",
         y_label="Survival time for fittest in generation [days]",
         keep_in_memory=True,
-        legend=custom_legend)
+        legend=custom_legend,
+        path_to_save=path_to_save_plots + '/SurvivalTime.pdf')
     
     hf.plot_arrays(
         gens_to_plot,
@@ -283,7 +286,8 @@ def plot_various_optimization_results(
         x_label="Generations [-]",
         y_label="dTTTTTTTTTTTTTTTT",
         keep_in_memory=True,
-        legend=custom_legend)
+        legend=custom_legend,
+        path_to_save=path_to_save_plots + '/dTTTTTTT.pdf')
     
     
     plt.show()

@@ -55,16 +55,17 @@ def save_stuff(data_dir, save_dir, filename):
 
 
 if __name__ == '__main__':
-    read_dir = './NMS/'
-    save_dir = './Figures/Pygmo/NMS/'
+    read_dir = './DE_tuned/'
+    save_dir = './Figures/Pygmo/DE_tuned/'
     hf.make_ALL_folders_for_path(save_dir + 'hello')
 
-    hf.make_ALL_folders_for_path('./OutputStuff/' + 'hello')
-    save_stuff('./GACO/', './OutputStuff/', 'best_of_GACO.pkl')
-    save_stuff('./PSO/', './OutputStuff/', 'best_of_PSO.pkl')
-    save_stuff('./DE/', './OutputStuff/', 'best_of_DE.pkl')
+    if False:
+        hf.make_ALL_folders_for_path('./OutputStuff/' + 'hello')
+        save_stuff('./GACO/', './OutputStuff/', 'best_of_GACO.pkl')
+        save_stuff('./PSO/', './OutputStuff/', 'best_of_PSO.pkl')
+        save_stuff('./DE/', './OutputStuff/', 'best_of_DE.pkl')
 
-    plot = False
+    plot = True
     if plot:
         print('plotting')
         all_generations = []
