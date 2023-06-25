@@ -23,6 +23,25 @@ def get_fitness(decision_var_arr):
     return fitness, unpenalized_objective, constraint
 
 
+
+
+def get_fitness_fixed_t_impulse(decision_var_arr):
+    """Wraps simulation function to allow for input and output format necessary for scipy optimization algorithms"""
+
+    decision_var_dict = {'dv': np.array([decision_var_arr[0], decision_var_arr[1], decision_var_arr[2]]),
+                         't_impulse': decision_var_arr[3]}
+
+    _, [unpenalized_objective, constraint] = sim.run_simulation(False, 6 * 31 * 24 * 60**2,
+                                                                decision_variable_dic=decision_var_dict)
+
+    if constraint > 0:
+        penalty = constraint**2 * 10**6
+    else:
+        penalty = 0
+    fitness = -unpenalized_objective + penalty
+    return fitness, unpenalized_objective, constraint
+
+
 class GA:
     def __init__(
         self,
@@ -209,7 +228,7 @@ def investigate_different_ga_settings(mp_nodes):
     
     pass
     
-
+# def run_algo_with_
         
 if __name__ == "__main__":
     
