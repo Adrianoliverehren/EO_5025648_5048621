@@ -742,9 +742,12 @@ if __name__ == "__main__":
     # make_gif_from_pngs(external_sim_data_dir + "/custom_genetic_algo/animation/")
     
     
-    decision_variables_array = [1.805939286221408535e-01, -3.988201153640763552e-02, -1.168958567696266604e+00, 1.437789485693128081e+05]
+    # decision_variables_array = [1.805939286221408535e-01, -3.988201153640763552e-02, -1.168958567696266604e+00, 1.437789485693128081e+05]
     
-    make_spiral_plot_for_decision_variables(decision_variables_array, report_dir + "/Figures/Ch5/pygmo_optimal_spiral.pdf", report_dir + "/Figures/Ch5/pygmo_optimal_animated", plot_unoptimized=True)
+    # make_spiral_plot_for_decision_variables(decision_variables_array, report_dir + "/Figures/Ch5/pygmo_optimal_spiral.pdf", report_dir + "/Figures/Ch5/pygmo_optimal_animated", plot_unoptimized=True)
+ 
     
     
     # print(np.rad2deg(constraint()))
+    
+    pass
