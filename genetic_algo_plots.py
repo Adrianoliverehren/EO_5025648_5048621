@@ -6,7 +6,7 @@ from gentic_algo import GA, get_fitness, get_fitness_fixed_t_impulse
 import simulation as sim
 import sys
 
-def plot_evolution_info(generations, path_to_data, only3vars=False):
+def plot_evolution_info(generations, path_to_data, only3vars=False, path_to_save_plots=None, show_plots=False):
     
     best_fitness = []
     t_survive = []
@@ -34,17 +34,29 @@ def plot_evolution_info(generations, path_to_data, only3vars=False):
         if not only3vars:      
             best_t_burn.append(generation.gene_pool[best_idx][3])        
         
-    hf.plot_arrays(np.arange(0, generations+1), [np.array(best_fitness)/(24*60**2)], keep_in_memory=True, y_label="Fitness", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [np.array(t_survive)/(24*60**2)], keep_in_memory=True, y_label="Survival time", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [period_t], keep_in_memory=True, y_label="Delta T", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [best_dv_r], keep_in_memory=True, y_label="dv r", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [best_dv_s], keep_in_memory=True, y_label="dv s", x_label="Generations") 
-    hf.plot_arrays(np.arange(0, generations+1), [best_dv_w], keep_in_memory=True, y_label="dv w", x_label="Generations") 
+    hf.plot_arrays(np.arange(0, generations+1), [np.array(best_fitness)/(24*60**2)], keep_in_memory=show_plots, y_label="Fitness", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/fitness_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    hf.plot_arrays(np.arange(0, generations+1), [np.array(t_survive)/(24*60**2)], keep_in_memory=show_plots, y_label="Survival time [days]", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/t_survive_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    hf.plot_arrays(np.arange(0, generations+1), [period_t], keep_in_memory=show_plots, y_label="Delta T", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/period_t_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    hf.plot_arrays(np.arange(0, generations+1), [best_dv_r], keep_in_memory=show_plots, y_label="dv r", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/dv_r_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    hf.plot_arrays(np.arange(0, generations+1), [best_dv_s], keep_in_memory=show_plots, y_label="dv s", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/dv_s_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    hf.plot_arrays(np.arange(0, generations+1), [best_dv_w], keep_in_memory=show_plots, y_label="dv w", x_label="Generations [-]",
+    path_to_save=path_to_save_plots + "/dv_w_vs_gen.pdf", plot_size=[3.5,3.5]) 
+    
+     
+    hf.plot_arrays(np.arange(0, generations+1), [best_dv_r, best_dv_s,  best_dv_w], keep_in_memory=show_plots, y_label=r"$\Delta V$ [m/s]", x_label="Generations [-]",
+                   legend=["R", "S", "W"], path_to_save=path_to_save_plots + "/delta_V_vs_gen.pdf", plot_size=[3.5,3.5]) 
     
     if not only3vars:
-        hf.plot_arrays(np.arange(0, generations+1), [np.array(best_t_burn)/(24*60**2)], keep_in_memory=True, y_label="t burn", x_label="Generations") 
+        hf.plot_arrays(np.arange(0, generations+1), [np.array(best_t_burn)/(24*60**2)], keep_in_memory=show_plots, y_label="t burn", x_label="Generations [-]",
+                       path_to_save=path_to_save_plots + "/best_t_burn_vs_gen.pdf", plot_size=[3.5,3.5]) 
     
-    plt.show()
+    if show_plots:
+        plt.show()
 
 
 def investigate_gen_algo_investigation(
@@ -325,9 +337,14 @@ def get_best_design_variables(gneration_file_path, t_impulse=None):
 
 if __name__ == "__main__":
     
-    plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars", only3vars=True)
+    plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars", only3vars=True,
+                        path_to_save_plots= hf.report_dir + "/Figures/Ch4/many_plots_for_3vars")
     
-    hf.plo
+    # dec_vars = get_best_design_variables(hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars/gen_150.pkl", t_impulse=1.2*24*60**2)
+    
+    # hf.make_spiral_plot_for_decision_variables(
+    #     dec_vars, path_to_save_normal=hf.report_dir + "/Figures/Ch5/3var_spiral.pdf", 
+    #     path_to_save_animation=hf.report_dir + "/Figures/Ch5/3var_spiral_animated")
     
     # investigate_gen_algo_investigation()
     

@@ -18,7 +18,6 @@ import matplotlib.animation as animation
 from PIL import Image
 import glob
 from matplotlib.lines import Line2D
-import simulation as sim
 
 def remove_folder_from_path(path : str, no_to_remove=1):
     path = path.replace("\\", "/")
@@ -683,6 +682,7 @@ def period_change(state_history, t_impulse, dependent_var_history):
 
 
 def make_spiral_plot_for_decision_variables(decision_variables_array, path_to_save_normal, path_to_save_animation, plot_unoptimized=True):
+    import simulation as sim
     
     
     decision_var_dict = {'dv': np.array([decision_variables_array[0], decision_variables_array[1], decision_variables_array[2]]),

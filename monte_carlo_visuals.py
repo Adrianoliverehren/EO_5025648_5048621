@@ -10,8 +10,6 @@ def create_one_at_a_time_plots(
     no_sims = 2**7
 ):
     
-    
-    
     objective_constraints = np.genfromtxt(data_path + "/objectives_constraints.dat").T
     
     parameter_values = hf.create_dic_drom_json(data_path + "/parameter_values.dat")
