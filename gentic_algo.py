@@ -5,15 +5,18 @@ import simulation as sim
 import multiprocessing as mp
 import helper_functions as hf
 import pickle
+import copy
+from functools import partial
 
-def get_fitness(decision_var_arr):
+def get_fitness(decision_var_arr, start_epoch=0):
     """Wraps simulation function to allow for input and output format necessary for scipy optimization algorithms"""
 
     decision_var_dict = {'dv': np.array([decision_var_arr[0], decision_var_arr[1], decision_var_arr[2]]),
                          't_impulse': decision_var_arr[3]}
 
     _, [unpenalized_objective, constraint] = sim.run_simulation(False, 6 * 31 * 24 * 60**2,
-                                                                decision_variable_dic=decision_var_dict)
+                                                                decision_variable_dic=decision_var_dict,
+                                                                simulation_start_epoch=start_epoch)
 
     if constraint > 0:
         penalty = constraint**2 * 10**6
@@ -24,9 +27,6 @@ def get_fitness(decision_var_arr):
     fitness = -unpenalized_objective + penalty
     return fitness, unpenalized_objective, constraint
 
-
-
-
 def get_fitness_fixed_t_impulse(decision_var_arr):
     """Wraps simulation function to allow for input and output format necessary for scipy optimization algorithms"""
 
@@ -35,7 +35,6 @@ def get_fitness_fixed_t_impulse(decision_var_arr):
 
     _, [unpenalized_objective, constraint] = sim.run_simulation(False, 6 * 31 * 24 * 60**2,
                                                                 decision_variable_dic=decision_var_dict)
-
     if constraint > 0:
         penalty = constraint**2 * 10**6
     else:
@@ -179,9 +178,13 @@ class GA:
         pickle_file = path_to_save_data + f"/gen_0.pkl"
         
         hf.make_ALL_folders_for_path(pickle_file)
-    
+        
+        pickle_object = copy.copy(self)
+        
+        delattr(pickle_object, "fitness_function")
+            
         with open(pickle_file, 'wb') as outp:
-            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(pickle_object, outp, pickle.HIGHEST_PROTOCOL)
             
         evolution_info_dic = {
             "individuals": individuals,
@@ -201,8 +204,12 @@ class GA:
             
             hf.make_ALL_folders_for_path(pickle_file)
         
+            pickle_object = copy.copy(self)
+            
+            delattr(pickle_object, "fitness_function")
+        
             with open(pickle_file, 'wb') as outp:
-                pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(pickle_object, outp, pickle.HIGHEST_PROTOCOL)
             
         pass
 
@@ -239,7 +246,26 @@ def run_algo_with_3_decison_vars():
         50, 150, 16, 0.5, 4, 20, 
         path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars")
     
+
+def run_gen_algo_with_different_init_conditions():
+    
+    bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
+    
+    start_epochs_array = np.arange(1,25,1) * (30*24*60**2)
+    
+    for i, start_epoch in enumerate(start_epochs_array):
         
+        # fitnessFunc = lambda input: get_fitness(input, start_epoch)
+                   
+        gen_algo = GA(partial(get_fitness, start_epoch=start_epoch), bounds, 42)    
+        gen_algo.evolve_population(
+            50, 150, 16, 0.5, 4, 20, 
+            path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/initial_condition_investigation/start_epoch_id_{i}")
+    
+
+
+
+
 if __name__ == "__main__":
     
     # bounds = [(-1, 1), (-1, 1), (-2, 2), (0, 2 * 24 * 60 ** 2)]
@@ -249,7 +275,9 @@ if __name__ == "__main__":
     #     50, 150, 8, 0.5, 4, 20, 
     #     path_to_save_data=hf.sim_data_dir + f"/custom_genetic_algo/best_settings/version_4")
     
-    run_algo_with_3_decison_vars()
+    # run_algo_with_3_decison_vars()
+    
+    run_gen_algo_with_different_init_conditions()
     
     
     # investigate_different_ga_settings(20)

@@ -113,6 +113,15 @@ def run_simulation(
     # TERMINATION CONDITIONS
 
     ######################################################################################
+    
+    mu = bodies.get("Earth").gravitational_parameter
+
+    cartesian_init_state = element_conversion.mee_to_cartesian(
+        default_init_mee,
+        mu,
+        False
+    )
+
 
     # Check if V impulse at t!=0
     if decision_variable_dic:
@@ -140,16 +149,8 @@ def run_simulation(
     # Get acceleration, integrator and propagator settings
     acceleration_models = ssf.get_acceleration_settings(bodies, spherical_harmonics=spherical_harmonics)
     integrator_settings = ssf.get_integrator_settings(integrator_settings_dic)
-    
-    mu = bodies.get("Earth").gravitational_parameter
-    
-    cartesian_init_state = element_conversion.mee_to_cartesian(
-        default_init_mee,
-        mu,
-        False
-    )
-    
-    if decision_variable_dic['t_impulse'] == 0:
+        
+    if decision_variable_dic['t_impulse'] == simulation_start_epoch:
         rsw_delta_v = decision_variable_dic["dv"]
         # Rotate delta_v to cartesian frame
         rotation_matrix = frame_conversion.inertial_to_rsw_rotation_matrix(cartesian_init_state)
@@ -175,7 +176,7 @@ def run_simulation(
     first_f_evals = list(dynamics_simulator.cumulative_number_of_function_evaluations.values())[-1]
 
     # If terminated based on reaching impulse time
-    if list(dynamics_simulator.state_history.keys())[-1] == decision_variable_dic['t_impulse']:
+    if list(dynamics_simulator.state_history.keys())[-1] == decision_variable_dic['t_impulse']+simulation_start_epoch:
         # Apply velocity impulse
         current_epoch = list(dynamics_simulator.state_history.keys())[-1]
         current_state = dynamics_simulator.state_history[current_epoch].copy()
@@ -249,7 +250,7 @@ def run_simulation(
     if run_for_mc:
         
         return sim_idx, [hf.calculate_obj(stacked_dep_vars_history, sim_idx),
-                        hf.period_change(stacked_state_history, decision_variable_dic['t_impulse'], stacked_dep_vars_history)]
+                        hf.period_change(stacked_state_history, decision_variable_dic['t_impulse']+simulation_start_epoch, stacked_dep_vars_history)]
         
     if return_time_lat_long:
         time = np.array(list(stacked_dep_vars_history.keys()))

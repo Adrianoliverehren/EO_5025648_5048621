@@ -31,23 +31,22 @@ def get_general_termination_settings(termination_latitude, termination_longitude
         use_as_lower_limit=True,
         terminate_exactly_on_final_condition=False
     )
-    upper_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
-        limit_value=termination_longitude,
-        use_as_lower_limit=False,
-        terminate_exactly_on_final_condition=False
-    )
-    lower_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
-        dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
-        limit_value=-termination_longitude,
-        use_as_lower_limit=True,
-        terminate_exactly_on_final_condition=False
-    )
+    # upper_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
+    #     dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
+    #     limit_value=termination_longitude,
+    #     use_as_lower_limit=False,
+    #     terminate_exactly_on_final_condition=False
+    # )
+    # lower_long_termination_settings = propagation_setup.propagator.dependent_variable_termination(
+    #     dependent_variable_settings=propagation_setup.dependent_variable.longitude("SUPER_SAT_37k", "Earth"),
+    #     limit_value=-termination_longitude,
+    #     use_as_lower_limit=True,
+    #     terminate_exactly_on_final_condition=False
+    # )
 
     cpu_termination_setting = propagation_setup.propagator.cpu_time_termination(max_cpu_time)
 
-    return [upper_lat_termination_settings, lower_lat_termination_settings, upper_long_termination_settings,
-            lower_long_termination_settings, cpu_termination_setting]
+    return [upper_lat_termination_settings, lower_lat_termination_settings, cpu_termination_setting]
 
 
 def get_integrator_settings(integrator_settings_dic):

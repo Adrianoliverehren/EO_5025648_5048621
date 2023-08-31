@@ -655,9 +655,14 @@ def make_ALL_folders_for_path(filepath):
 
 
 def calculate_obj(dependent_var_history, sim_idx="n/a"):
+    
     for t in dependent_var_history.keys():
+        if t == list(dependent_var_history.keys())[0]:
+            initial_dep_vars = dependent_var_history[t]
         current_dep_vars = dependent_var_history[t]
-        angle_radius_thing = np.sqrt(current_dep_vars[5]**2 + current_dep_vars[6]**2)
+        angle_radius_thing = np.sqrt((current_dep_vars[5] - initial_dep_vars[5])**2 + (current_dep_vars[6] - initial_dep_vars[6])**2)
+        
+        
         if angle_radius_thing > constraint():
             return t
 

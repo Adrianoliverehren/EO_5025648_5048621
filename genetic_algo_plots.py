@@ -312,7 +312,6 @@ def plot_various_optimization_results(
     pass
 
 
-
 def get_best_design_variables(gneration_file_path, t_impulse=None):
     with open(gneration_file_path, 'rb') as f:
         generation = pickle.load(f)
@@ -332,13 +331,63 @@ def get_best_design_variables(gneration_file_path, t_impulse=None):
     return np.array([best_dv_r, best_dv_s, best_dv_w, t_impulse])
          
 
+def plot_initial_state_variation_data(path_to_data, no_iters):
     
+    t_survive_lst = []
+     
+    for iter in range(no_iters):
+        
+        info_dict = hf.create_dic_drom_json(path_to_data + f"/start_epoch_id_{iter}/evolution_info_dic.dat")
+        
+        total_gens = info_dict["generations"]
+                        
+        with open(path_to_data + f"/start_epoch_id_{iter}/gen_{total_gens - 1}.pkl", 'rb') as f:
+            generation = pickle.load(f)
+
+        best_idx = np.argmin(generation.fitness_pool)
+        best_fitness = generation.fitness_pool[best_idx]
+        t_survive = generation.survival_pool[best_idx]  
+        period_t = generation.constraint_pool[best_idx]
+        best_dv_r = generation.gene_pool[best_idx][0]
+        best_dv_s = generation.gene_pool[best_idx][1]
+        best_dv_w = generation.gene_pool[best_idx][2]
+        best_t_burn = generation.gene_pool[best_idx][3]
+        
+        t_survive_lst.append((t_survive - (iter + 1) * 30*24*60**2)/(24*60**2))
+    
+    x = [fr"$t_0 + {30*n} \;\; days$" for n in np.arange(1,25)]    
+    
+    # hf.plot_arrays()
+    
+    plt.bar(x, t_survive_lst)
+    
+    plt.xticks(rotation=90)
+    
+    plt.ylabel("Optimized survival time [days]")
+    
+    plt.grid(axis="y")
+    
+    plt.tight_layout()
+    
+    # print(t_survive_lst)
+    
+    plt.savefig(hf.report_dir + "/Figures/Ch6/t_survive_diff_start_t.pdf")
+    
+    plt.show()
+     
+     
+    pass
+        
 
 
 if __name__ == "__main__":
     
-    plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars", only3vars=True,
-                        path_to_save_plots= hf.report_dir + "/Figures/Ch4/many_plots_for_3vars")
+    # plot_evolution_info(150, hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars", only3vars=True,
+    #                     path_to_save_plots= hf.report_dir + "/Figures/Ch4/many_plots_for_3vars", show_plots=True)
+    
+    plot_evolution_info(150, "EO_5025648_5048621/SimulationData/custom_genetic_algo/best_settings/version_3", path_to_save_plots="overleaf/Figures/Ch5/genetic_algo", show_plots=True)
+    
+    # plot_initial_state_variation_data(hf.sim_data_dir + f"/custom_genetic_algo/initial_condition_investigation", 24)
     
     # dec_vars = get_best_design_variables(hf.sim_data_dir + f"/custom_genetic_algo/3_decision_vars/gen_150.pkl", t_impulse=1.2*24*60**2)
     
